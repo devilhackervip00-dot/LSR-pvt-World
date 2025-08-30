@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>THE BDT PREDICTOR V.3 (Advanced Patterns)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #00ffea;
+      --primary-transparent: #00ffea33;
+      --primary-hover: #00ffea4d;
+      --background: #000;
+      --card-bg: #111;
+      --table-border: #222;
+      --analysis-box-bg: #222;
+      --text-gray: #aaa;
+    }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--background);
+      color: #fff;
+      margin: 0;
+      padding: 10px;
+      text-align: center;
+      animation: slide-up-down 2s ease-in-out infinite;
+    }
+    .header {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    .prediction-btn {
+      margin: 10px auto;
+      display: block;
+      background: var(--primary-transparent);
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      padding: 12px;
+      font-weight: bold;
+      font-size: 18px;
+      transition: transform 0.2s;
+    }
+    .prediction-btn:hover {
+      transform: scale(1.05);
+    }
+    #patternBox {
+      color: var(--text-gray);
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .tab-buttons {
+      display: flex;
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .tab-buttons button {
+      flex: 1;
+      background: var(--card-bg);
+      color: var(--primary-color);
+      padding: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .tab-buttons button.active {
+      background: var(--primary-transparent);
+      transform: translateY(-2px);
+    }
+    .tab-buttons button:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+    .history-container {
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      overflow: auto;
+      max-height: 300px; /* Fixed height for scrollable table */
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      font-size: 13px;
+      border-bottom: 1px solid var(--table-border);
+      padding: 6px;
+    }
+    th {
+      background: var(--card-bg);
+      color: var(--primary-color);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot.red { background: red; }
+    .dot.green { background: lime; }
+    .dot.violet { background: violet; }
+    .num.red { color: red; font-weight: bold; }
+    .num.green { color: lime; font-weight: bold; }
+    .num.violet { color: violet; font-weight: bold; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .status.win { background: lime; color: #000; }
+    .status.loss { background: red; color: #fff; }
+    .status.pending { background: var(--text-gray); color: #000; }
+    .status.skip { background: var(--text-gray); color: #fff; }
+    .analysis-dashboard {
+      background: var(--card-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    .analysis-header {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+    .analysis-content {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .analysis-box {
+      flex: 1;
+      min-width: 100px;
+      margin: 5px;
+      padding: 8px;
+      background: var(--analysis-box-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      transition: transform 0.3s;
+    }
+    .analysis-box:hover {
+      transform: translateY(-3px);
+    }
+    .online { color: lime; }
+    .offline { color: red; }
+
+    @keyframes slide-up-down {
+      0% { transform: translateY(-10px); }
+      50% { transform: translateY(10px); }
+      100% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">𝐓𝐇𝐄 𝐋𝐒𝐑 𝐏𝐑𝐄𝐃𝐈𝐂𝐓𝐎𝐑 𝐕.6</div>
+  <div class="card">
+    <div class="analysis-header">CURRENT PREDICTION</div>
+    <div id="currentPeriod">Current Period: Loading...</div>
+    <div id="liveTime">Time: --:--:--</div>
+    <div id="predictionBox" class="prediction-btn">Prediction → Analyzing...</div>
+    <div id="confidenceBox">Confidence: --%</div>
+    <div id="patternBox">Pattern: --</div>
+  </div>
+  <div class="analysis-dashboard">
+    <div class="analysis-header">ANALYSIS DASHBOARD</div>
+    <div class="analysis-content">
+      <div class="analysis-box">Total Wins: <span id="totalWins">0</span></div>
+      <div class="analysis-box">Total Losses: <span id="totalLosses">0</span></div>
+      <div class="analysis-box">Server Status: <span id="serverStatus" class="offline">Offline</span></div>
+    </div>
+  </div>
+  <div class="tab-buttons">
+    <button id="predTab" class="active">Prediction History</button>
+    <button id="gameTab">Game History</button>
+  </div>
+  <div class="history-container">
+    <table>
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"><tr><td>Loading...</td></tr></tbody>
+    </table>
+  </div>
+
+  <script>
+    const CURRENT_API = 'https://api.bdg88zf.com/api/webapi/GetGameIssue';
+    const HISTORY_API = 'https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json';
+
+    const REQUEST_DATA = {
+      typeId: 1,
+      language: 0,
+      random: "e7fe6c090da2495ab8290dac551ef1ed",
+      signature: "1F390E2B2D8A55D693E57FD905AE73A7",
+      timestamp: 1723726679
+    };
+
+    let predictionHistory = [];
+
+    function getRandomColor() {
+      const hue = Math.floor(Math.random() * 360);
+      const saturation = Math.floor(Math.random() * 30) + 70;
+      const lightness = Math.floor(Math.random() * 20) + 50;
+      return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+
+    function updateColorScheme() {
+      const primaryColor = getRandomColor();
+      const primaryTransparent = primaryColor.replace(')', ', 0.2)').replace('hsl', 'hsla');
+      const primaryHover = primaryColor.replace(')', ', 0.3)').replace('hsl', 'hsla');
+      document.documentElement.style.setProperty('--primary-color', primaryColor);
+      document.documentElement.style.setProperty('--primary-transparent', primaryTransparent);
+      document.documentElement.style.setProperty('--primary-hover', primaryHover);
+    }
+
+    function getBigSmall(num) {
+      return num >= 5 ? "Big" : "Small";
+    }
+
+    function getColor(num) {
+      if ([1, 3, 7, 9].includes(num)) return "Green";
+      if ([2, 4, 6, 8].includes(num)) return "Red";
+      return "Violet";
+    }
+
+    function updateLiveTime() {
+      document.getElementById("liveTime").innerText = "Time: " + new Date().toLocaleTimeString('en-GB');
+    }
+
+    function updateStats() {
+      const wins = predictionHistory.filter(p => p.status === "Win").length;
+      const losses = predictionHistory.filter(p => p.status === "Loss").length;
+      document.getElementById("totalWins").innerText = wins;
+      document.getElementById("totalLosses").innerText = losses;
+    }
+
+    async function checkInternetSpeed() {
+      const statusElement = document.getElementById("serverStatus");
+      if (!navigator.onLine) {
+        statusElement.innerText = "Offline";
+        statusElement.className = "offline";
+        return;
+      }
+
+      try {
+        const startTime = performance.now();
+        await fetch('https://www.google.com', { mode: 'no-cors' });
+        const endTime = performance.now();
+        const latency = Math.round(endTime - startTime);
+        const speed = latency < 200 ? "Fast" : latency < 500 ? "Medium" : "Slow";
+        statusElement.innerText = `Online (${speed}, ${latency}ms)`;
+        statusElement.className = "online";
+      } catch (e) {
+        statusElement.innerText = "Offline";
+        statusElement.className = "offline";
+      }
+    }
+
+    function predict(history) {
+      const data = history.slice(0, 8).map(h => h.size);
+
+      if (data.length < 8) {
+        return { text: "Analyzing...", conf: "--", pattern: "Awaiting data" };
+      }
+
+      const SKIP_THRESHOLD = 70;
+
+      const patterns = [
+        { 
+          condition: () => data[0] === data[3] && data[1] === data[4] && data[2] === data[5] && (data[0] !== data[1] || data[1] !== data[2]),
+          prediction: data[0],
+          conf: 96,
+          name: "Repeating Sequence (ABCABC)"
+        },
+        { 
+          condition: () => data[0] === data[1] && data[1] === data[2],
+          prediction: data[0],
+          conf: 95,
+          name: "Triple Streak (AAA)"
+        },
+        { 
+          condition: () => data[0] !== data[1] && data[1] === data[2] && data[2] === data[3],
+          prediction: data[1],
+          conf: 93,
+          name: "Single with Triple (ABBB)"
+        },
+        { 
+          condition: () => data[0] === data[2] && data[1] === data[3] && data[0] !== data[1],
+          prediction: data[0],
+          conf: 92,
+          name: "Alternating (ABAB)"
+        },
+        { 
+          condition: () => data[0] === data[1] && data[2] === data[3] && data[0] !== data[2],
+          prediction: data[0],
+          conf: 90,
+          name: "Double (AABB)"
+        },
+        { 
+          condition: () => data[0] === data[3] && data[1] === data[2] && data[0] !== data[1],
+          prediction: data[0],
+          conf: 89,
+          name: "Mirror (ABBA)"
+        },
+        { 
+          condition: () => data[0] === data[1] && data[2] !== data[0] && data[3] === data[0] && data[4] === data[0],
+          prediction: data[2],
+          conf: 88,
+          name: "Two-One-Two (AABAA)"
+        },
+        { 
+          condition: () => data[0] !== data[1] && data[1] !== data[2] && data[2] !== data[3] && data[0] === data[4],
+          prediction: data[1],
+          conf: 87,
+          name: "Cycle with Return (ABCDA)"
+        },
+        { 
+          condition: () => data[0] === data[1] && data[1] === data[2] && data[3] === data[4],
+          prediction: data[3],
+          conf: 86,
+          name: "Triple to Double (AAABBB)"
+        },
+        { 
+          condition: () => data[0] !== data[1] && data[1] === data[2] && data[3] === data[4] && data[0] === data[3],
+          prediction: data[1],
+          conf: 85,
+          name: "Alternating Pairs (ABBACC)"
+        },
+        { 
+          condition: () => data[0] === data[2] && data[1] === data[3] && data[2] === data[4] && data[0] !== data[1],
+          prediction: data[0],
+          conf: 84,
+          name: "Extended Alternating (ABABAB)"
+        },
+        { 
+          condition: () => data[0] === data[1] && data[2] === data[3] && data[4] === data[5] && data[0] !== data[2],
+          prediction: data[0],
+          conf: 83,
+          name: "Paired Groups (AABBCC)"
+        },
+        { 
+          condition: () => data[0] === data[2] && data[1] === data[3] && data[4] !== data[0] && data[4] !== data[1],
+          prediction: data[4],
+          conf: 82,
+          name: "Break Alternating (ABABC)"
+        },
+        { 
+          condition: () => data[0] === data[1] && data[1] === data[2] && data[3] !== data[2],
+          prediction: data[3],
+          conf: 81,
+          name: "Triple Break (AAABB)"
+        },
+        { 
+          condition: () => data[0] !== data[1] && data[1] !== data[2] && data[2] === data[3] && data[3] === data[4],
+          prediction: data[2],
+          conf: 80,
+          name: "Late Triple (ABCCC)"
+        },
+        { 
+          condition: () => data[0] === data[1] && data[2] === data[4] && data[3] === data[5] && data[0] !== data[2],
+          prediction: data[0],
+          conf: 79,
+          name: "Spaced Pairs (AABCBC)"
+        },
+        { 
+          condition: () => data[0] !== data[1] && data[1] === data[2] && data[3] !== data[2] && data[4] === data[2],
+          prediction: data[3],
+          conf: 78,
+          name: "Intermittent Repeat (ABBAC)"
+        },
+        { 
+          condition: () => data[0] === data[2] && data[1] === data[3] && data[4] === data[2] && data[0] !== data[1],
+          prediction: data[1],
+          conf: 77,
+          name: "Alternating with Return (ABABCB)"
+        },
+        { 
+          condition: () => data[0] !== data[1] && data[1] !== data[2] && data[2] !== data[3] && data[3] !== data[4],
+          prediction: data[0],
+          conf: 76,
+          name: "No Pattern Repeat (ABCDE)"
+        },
+        { 
+          condition: () => data[0] === data[1] && data[2] === data[3] && data[4] === data[5] && data[0] === data[2],
+          prediction: data[0],
+          conf: 75,
+          name: "Consistent Pairs (AAAABB)"
+        }
+      ];
+
+      let streakLength = 1;
+      for (let i = 1; i < data.length; i++) {
+        if (data[i] === data[i - 1]) {
+          streakLength++;
+        } else {
+          break;
+        }
+      }
+      if (streakLength >= 4) {
+        const opposite = data[0] === "Big" ? "Small" : "Big";
+        patterns.push({
+          condition: () => true,
+          prediction: opposite,
+          conf: 85,
+          name: `Trend Reversal (Streak of ${streakLength})`
+        });
+      }
+
+      for (const pattern of patterns.sort((a, b) => b.conf - a.conf)) {
+        if (pattern.condition()) {
+          return { text: pattern.prediction, conf: pattern.conf, pattern: pattern.name };
+        }
+      }
+
+      return { text: "SKIP", conf: 0, pattern: "No Clear Pattern" };
+    }
+
+    async function fetchData() {
+      try {
+        updateColorScheme();
+
+        let period = "Unavailable";
+        try {
+          const periodRes = await fetch(CURRENT_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...REQUEST_DATA, timestamp: Math.floor(Date.now() / 1000) })
+          });
+          if (!periodRes.ok) {
+            console.warn(`Period API failed: ${periodRes.status}`);
+          } else {
+            const periodData = await periodRes.json();
+            if (periodData?.data?.issueNumber) {
+              period = periodData.data.issueNumber;
+            }
+          }
+        } catch (e) {
+          console.warn("Period API error:", e.message);
+        }
+        document.getElementById("currentPeriod").innerText = `Current Period: ${period}`;
+
+        let history = [];
+        try {
+          const res = await fetch(HISTORY_API + '?ts=' + Date.now());
+          if (!res.ok) {
+            console.warn(`History API failed: ${res.status}`);
+          } else {
+            const data = await res.json();
+            if (data?.data?.list) {
+              history = data.data.list.map(item => {
+                const num = parseInt(item.number);
+                return { period: item.issueNumber, number: num, size: getBigSmall(num), color: getColor(num) };
+              });
+            }
+          }
+        } catch (e) {
+          console.warn("History API error:", e.message);
+        }
+
+        const prediction = predict(history);
+        document.getElementById("predictionBox").innerText = `Prediction → ${prediction.text}`;
+        document.getElementById("confidenceBox").innerText = `Confidence: ${prediction.conf}%`;
+        document.getElementById("patternBox").innerText = `Pattern: ${prediction.pattern}`;
+
+        if (prediction.text !== "Analyzing..." && period !== "Unavailable") {
+          if (!predictionHistory.find(p => p.period === period)) {
+            const status = prediction.text === "SKIP" ? "SKIP" : "Pending";
+            predictionHistory.unshift({ period: period, prediction: prediction.text, actual: "--", status: status });
+          }
+        }
+
+        predictionHistory.forEach(ph => {
+          if (ph.prediction === "SKIP") return;
+          const match = history.find(h => h.period === ph.period);
+          if (match && ph.status === "Pending") {
+            ph.actual = match.size;
+            ph.status = (ph.prediction === ph.actual) ? "Win" : "Loss";
+          }
+        });
+
+        updateStats();
+        renderTable();
+      } catch (e) {
+        console.error("Unexpected error:", e.message);
+      }
+    }
+
+    function renderTable() {
+      const head = document.getElementById("tableHead");
+      const body = document.getElementById("tableBody");
+
+      if (document.getElementById("predTab").classList.contains("active")) {
+        head.innerHTML = "<tr><th>Period</th><th>Prediction</th><th>Actual</th><th>Status</th></tr>";
+        body.innerHTML = predictionHistory.length === 0
+          ? "<tr><td colspan='4'>No predictions yet</td></tr>"
+          : predictionHistory.map((item, index) => `
+            <tr>
+              <td>${item.period}</td>
+              <td>${item.prediction}</td>
+              <td>${item.actual}</td>
+              <td><span class="status ${item.status.toLowerCase()}">${item.status.charAt(0)}</span></td>
+            </tr>`).join("");
+      } else {
+        head.innerHTML = "<tr><th>Period</th><th>Number</th><th>Big/Small</th><th>Color</th></tr>";
+        body.innerHTML = "<tr><td colspan='4'>Loading game history...</td></tr>";
+        fetch(HISTORY_API + '?ts=' + Date.now())
+          .then(res => {
+            if (!res.ok) {
+              body.innerHTML = "<tr><td colspan='4'>Error loading game history</td></tr>";
+              return;
+            }
+            return res.json();
+          })
+          .then(data => {
+            if (!data?.data?.list) {
+              body.innerHTML = "<tr><td colspan='4'>Error loading game history</td></tr>";
+              return;
+            }
+            const history = data.data.list.map(item => {
+              const num = parseInt(item.number);
+              return { period: item.issueNumber, number: num, size: getBigSmall(num), color: getColor(num) };
+            });
+            body.innerHTML = history.map((item, index) => {
+              const colorClass = item.color.toLowerCase();
+              return `
+                <tr>
+                  <td>${item.period}</td>
+                  <td class="num ${colorClass}">${item.number}</td>
+                  <td>${item.size}</td>
+                  <td><span class="dot ${colorClass}"></span></td>
+                </tr>`;
+            }).join("");
+          })
+          .catch(e => {
+            body.innerHTML = "<tr><td colspan='4'>Error loading game history</td></tr>";
+            console.error("Game history error:", e.message);
+          });
+      }
+    }
+
+    document.getElementById("predTab").onclick = () => {
+      document.getElementById("predTab").classList.add("active");
+      document.getElementById("gameTab").classList.remove("active");
+      renderTable();
+    };
+    document.getElementById("gameTab").onclick = () => {
+      document.getElementById("gameTab").classList.add("active");
+      document.getElementById("predTab").classList.remove("active");
+      renderTable();
+    };
+
+    updateColorScheme();
+    setInterval(updateLiveTime, 1000);
+    setInterval(fetchData, 10000);
+    setInterval(checkInternetSpeed, 5000);
+    fetchData();
+    updateLiveTime();
+    checkInternetSpeed();
+  </script>
+</body>
+</html>
