@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>THE BDT PREDICTOR V.4 (Loss Reduction)</title>
+  <title>THE BDT PREDICTOR V.5 (Loss Reduction)</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Outfit', sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; text-align: center; }
@@ -23,6 +23,7 @@
     .dot.red { background: red; } .dot.green { background: lime; } .dot.violet { background: violet; }
     .num.red { color: red; font-weight: bold; } .num.green { color: lime; font-weight: bold; } .num.violet { color: violet; font-weight: bold; }
     .status.win { color: lime; font-weight: bold; } .status.loss { color: red; font-weight: bold; }
+    .status.skipped { color: yellow; font-weight: bold; }
     .analysis-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
     .analysis-card { background: #111; border: 1px solid #00ffea; border-radius: 8px; padding: 10px; text-align: left; }
     .analysis-card h3 { color: #00ffea; margin-top: 0; font-size: 14px; }
@@ -38,13 +39,12 @@
   </style>
 </head>
 <body>
-  <div class="header">𝐓𝐇𝐄 𝐋𝐒𝐑 𝐏𝐑𝐄𝐃𝐈𝐂𝐓𝐎𝐑 𝐕.6</div>
+  <div class="header">THE BDT PREDICTOR V.5</div>
   <div class="card">
     <div id="currentPeriod">Current Period: Loading...</div>
     <div id="liveTime">Time: --:--:--</div>
     <div id="predictionBox" class="prediction-btn">Prediction → Analyzing...</div>
     <div id="confidenceBox">Confidence: --%</div>
-    <div id="patternBox">Pattern: --</div>
     <div id="winRate" class="win-rate">Win Rate: --%</div>
   </div>
 
@@ -84,11 +84,12 @@
   <div id="strategyContainer" style="display: none;">
     <div class="strategy">
       <h4>Loss Reduction Strategy</h4>
-      <p>1. <strong>Pattern Break Detection:</strong> Identifies when streaks are statistically likely to end</p>
-      <p>2. <strong>Imbalance Correction:</strong> Bets against significant imbalances (difference > 15)</p>
-      <p>3. <strong>Heat-based Prediction:</strong> Uses hot/cold number analysis for better predictions</p>
-      <p>4. <strong>Adaptive Confidence:</strong> Adjusts confidence based on pattern strength</p>
-      <p>5. <strong>Trend Following:</strong> Identifies and follows short-term trends</p>
+      <p>1. <strong>Pattern Break Detection:</strong> Identifies when streaks are likely to end.</p>
+      <p>2. <strong>Imbalance Correction:</strong> Bets against significant imbalances (difference > 10).</p>
+      <p>3. <strong>Heat-based Prediction:</strong> Uses hot/cold number analysis for better predictions.</p>
+      <p>4. <strong>Adaptive Confidence:</strong> Adjusts confidence based on historical trends.</p>
+      <p>5. <strong>Trend Following:</strong> Identifies and follows short-term trends.</p>
+      <p>6. <strong>Skip Low Confidence:</strong> Skips predictions below 75% confidence to minimize losses.</p>
     </div>
     <div class="strategy">
       <h4>Current Strategy</h4>
@@ -127,95 +128,65 @@ function getColor(num) {
 
 // Update live time display
 function updateLiveTime() {
-  document.getElementById("liveTime").innerText = "Time: " + new Date().toLocaleTimeString('en-GB');
+  document.getElementById("liveTime").innerText = `Time: ${new Date().toLocaleTimeString('en-GB')}`;
 }
 
 /**
- * AI Prediction Logic: Analyzes statistical patterns for Big/Small predictions
- * with a focus on loss reduction
+ * AI Prediction Logic: Simplified and optimized for Big/Small predictions
  * @param {Array} history - Array of historical game data
- * @returns {Object} - Prediction text, confidence, and pattern name
+ * @returns {Object} - Prediction text and confidence
  */
 function predict(history) {
   if (history.length < 10) {
-    return { text: "Analyzing...", conf: "--", pattern: "Awaiting data" };
+    return { text: "Analyzing...", conf: "--", strategy: "Awaiting data" };
   }
 
-  // Get the last 100 results for analysis
   const last100 = last100Results.length > 0 ? last100Results : history.slice(0, 100);
   
   // Count occurrences of Big and Small
-  let bigCount = 0;
-  let smallCount = 0;
+  let bigCount = last100.filter(item => item.size === "Big").length;
+  let smallCount = last100.length - bigCount;
   
-  last100.forEach(item => {
-    if (item.size === "Big") bigCount++;
-    else smallCount++;
-  });
-  
-  // Calculate probabilities
-  const bigProbability = bigCount / last100.length;
-  const smallProbability = smallCount / last100.length;
+  // Calculate imbalance
+  const imbalance = Math.abs(bigCount - smallCount);
+  const imbalanceThreshold = 10; // Reduced threshold for sensitivity
   
   // Check for streaks
   const last5 = history.slice(0, 5).map(h => h.size);
   const currentStreak = getCurrentStreak(last5);
   
-  // Check for imbalance
-  const imbalance = Math.abs(bigCount - smallCount);
-  const imbalanceThreshold = 15; // If difference is more than 15
-  
-  // Advanced prediction logic with loss reduction
+  let prediction, conf, strategy;
+
+  // Strategy 1: Imbalance correction
   if (imbalance > imbalanceThreshold) {
-    // If there's a significant imbalance, predict the less frequent
-    const prediction = bigCount > smallCount ? "Small" : "Big";
-    const confidence = Math.min(95, 75 + Math.floor(imbalance / 2));
-    return { 
-      text: prediction, 
-      conf: confidence, 
-      pattern: `Imbalance correction (${imbalance} difference)` 
-    };
-  } else if (currentStreak.count >= 3) {
-    // If there's a streak of 3 or more, predict break (but with caution)
-    const prediction = currentStreak.type === "Big" ? "Small" : "Big";
-    
-    // Higher confidence for longer streaks but cap at 4+ streaks
-    let confidence = 80;
-    if (currentStreak.count === 3) confidence = 82;
-    if (currentStreak.count === 4) confidence = 85;
-    if (currentStreak.count >= 5) confidence = 88;
-    
-    return { 
-      text: prediction, 
-      conf: confidence, 
-      pattern: `Streak break (${currentStreak.count} ${currentStreak.type})` 
-    };
-  } else {
-    // Use heat-based prediction (analyze hot numbers)
+    prediction = bigCount > smallCount ? "Small" : "Big";
+    conf = Math.min(95, 80 + Math.floor(imbalance / 2));
+    strategy = `Imbalance correction (${imbalance} difference)`;
+  }
+  // Strategy 2: Streak break detection
+  else if (currentStreak.count >= 3) {
+    prediction = currentStreak.type === "Big" ? "Small" : "Big";
+    conf = Math.min(90, 75 + (currentStreak.count - 2) * 5);
+    strategy = `Streak break (${currentStreak.count} ${currentStreak.type})`;
+  }
+  // Strategy 3: Heat-based prediction
+  else {
     const heatPrediction = heatBasedPrediction(history);
-    if (heatPrediction.conf > 80) {
+    if (heatPrediction.conf >= 75) {
       return heatPrediction;
     }
-    
-    // Otherwise, predict based on probability with slight adjustment for recent trends
-    const recentTrend = getRecentTrend(history.slice(0, 10));
-    let prediction;
-    let confidence;
-    
-    if (Math.abs(bigProbability - smallProbability) < 0.1) {
-      // If probabilities are close, follow recent trend
-      prediction = recentTrend;
-      confidence = 75;
-      pattern = "Recent trend";
-    } else {
-      // Otherwise, follow the higher probability but with caution
-      prediction = bigProbability > smallProbability ? "Big" : "Small";
-      confidence = Math.floor(Math.max(bigProbability, smallProbability) * 80);
-      pattern = "Probability based";
-    }
-    
-    return { text: prediction, conf: confidence, pattern };
+    // Fallback: Recent trend
+    prediction = getRecentTrend(history.slice(0, 10));
+    conf = 70;
+    strategy = "Recent trend";
   }
+
+  // Skip low-confidence predictions
+  if (conf < 75) {
+    return { text: "Skip", conf: 0, strategy: "Low confidence - Skip to minimize loss" };
+  }
+
+  return { text: prediction, conf, strategy };
 }
 
 // Heat-based prediction using number analysis
@@ -223,158 +194,113 @@ function heatBasedPrediction(history) {
   const stats = analyzeNumbers(last100Results);
   const recentNumbers = history.slice(0, 5).map(h => h.number);
   
-  // Check if recent numbers are mostly hot or cold
-  let hotCount = 0;
-  let coldCount = 0;
-  
+  let hotCount = 0, coldCount = 0;
   recentNumbers.forEach(num => {
     if (stats[num].missing <= 5) hotCount++;
     else if (stats[num].missing >= 15) coldCount++;
   });
-  
-  // If mostly hot numbers, predict continuation of hot numbers (which are more likely to be Big)
+
   if (hotCount >= 3) {
     const hotBigCount = recentNumbers.filter(n => n >= 5 && stats[n].missing <= 5).length;
     const hotSmallCount = hotCount - hotBigCount;
-    
     if (hotBigCount > hotSmallCount) {
-      return { text: "Big", conf: 82, pattern: "Hot numbers trend (Big)" };
+      return { text: "Big", conf: 85, strategy: "Hot numbers trend (Big)" };
     } else if (hotSmallCount > hotBigCount) {
-      return { text: "Small", conf: 82, pattern: "Hot numbers trend (Small)" };
+      return { text: "Small", conf: 85, strategy: "Hot numbers trend (Small)" };
     }
   }
-  
-  // If mostly cold numbers, predict change
+
   if (coldCount >= 3) {
     const coldBigCount = recentNumbers.filter(n => n >= 5 && stats[n].missing >= 15).length;
     const coldSmallCount = coldCount - coldBigCount;
-    
     if (coldBigCount > coldSmallCount) {
-      return { text: "Small", conf: 78, pattern: "Cold numbers reversal (to Small)" };
+      return { text: "Small", conf: 80, strategy: "Cold numbers reversal (to Small)" };
     } else if (coldSmallCount > coldBigCount) {
-      return { text: "Big", conf: 78, pattern: "Cold numbers reversal (to Big)" };
+      return { text: "Big", conf: 80, strategy: "Cold numbers reversal (to Big)" };
     }
   }
-  
-  return { text: "", conf: 0, pattern: "" };
+
+  return { text: "", conf: 0, strategy: "" };
 }
 
 // Get current streak information
 function getCurrentStreak(lastResults) {
-  if (lastResults.length < 1) return { type: null, count: 0 };
-  
-  let type = lastResults[0];
-  let count = 1;
-  
+  if (!lastResults.length) return { type: null, count: 0 };
+  let type = lastResults[0], count = 1;
   for (let i = 1; i < lastResults.length; i++) {
-    if (lastResults[i] === type) {
-      count++;
-    } else {
-      break;
-    }
+    if (lastResults[i] === type) count++;
+    else break;
   }
-  
   return { type, count };
 }
 
-// Get recent trend (last 10 results)
+// Get recent trend
 function getRecentTrend(history) {
-  if (history.length < 5) return "Big"; // Default
-  
-  let bigCount = 0;
-  let smallCount = 0;
-  
-  history.slice(0, 10).forEach(item => {
-    if (item.size === "Big") bigCount++;
-    else smallCount++;
-  });
-  
-  return bigCount > smallCount ? "Big" : "Small";
+  if (history.length < 5) return "Big";
+  let bigCount = history.filter(item => item.size === "Big").length;
+  return bigCount > history.length / 2 ? "Big" : "Small";
 }
 
-/**
- * Analyze last 100 periods for number statistics
- */
+// Analyze numbers for stats
 function analyzeNumbers(history) {
-  const numbers = Array(10).fill().map((_, i) => i); // 0-9
-  const stats = {};
-  
-  // Initialize stats
-  numbers.forEach(num => {
-    stats[num] = {
-      frequency: 0,
-      lastSeen: null,
-      missing: 0,
-      maxConsecutive: 0,
-      currentConsecutive: 0
-    };
-  });
-  
-  // Process history to calculate stats
+  const stats = Array(10).fill().map((_, i) => ({
+    frequency: 0,
+    missing: 0,
+    maxConsecutive: 0,
+    currentConsecutive: 1
+  }));
+
   for (let i = history.length - 1; i >= 0; i--) {
     const num = history[i].number;
     stats[num].frequency++;
-    
-    // Update missing counts
-    numbers.forEach(n => {
-      if (n !== num) {
-        stats[n].missing++;
-      } else {
-        stats[n].missing = 0;
-      }
+    stats.forEach((s, n) => {
+      if (n !== num) s.missing++;
+      else s.missing = 0;
     });
-    
-    // Update consecutive
-    if (i < history.length - 1) {
-      if (num === history[i + 1].number) {
-        stats[num].currentConsecutive++;
-        stats[num].maxConsecutive = Math.max(stats[num].maxConsecutive, stats[num].currentConsecutive);
-      } else {
-        stats[num].currentConsecutive = 1;
-      }
+
+    if (i < history.length - 1 && num === history[i + 1].number) {
+      stats[num].currentConsecutive++;
+      stats[num].maxConsecutive = Math.max(stats[num].maxConsecutive, stats[num].currentConsecutive);
+    } else {
+      stats[num].currentConsecutive = 1;
     }
   }
-  
   return stats;
 }
 
-/**
- * Update analysis displays
- */
+// Update analysis displays
 function updateAnalysisDisplays(stats) {
-  // Hot numbers (most frequent)
-  const hotNumbers = Object.entries(stats)
-    .sort((a, b) => b[1].frequency - a[1].frequency)
+  const hotNumbers = stats
+    .map((s, i) => ({ num: i, freq: s.frequency }))
+    .sort((a, b) => b.freq - a.freq)
     .slice(0, 5)
-    .map(([num, data]) => `${num} (${data.frequency})`);
-  
-  document.getElementById("hotNumbers").innerHTML = hotNumbers.join(", ");
-  
-  // Cold numbers (missing longest)
-  const coldNumbers = Object.entries(stats)
-    .sort((a, b) => b[1].missing - a[1].missing)
+    .map(d => `${d.num} (${d.freq})`)
+    .join(", ");
+  document.getElementById("hotNumbers").innerHTML = hotNumbers;
+
+  const coldNumbers = stats
+    .map((s, i) => ({ num: i, miss: s.missing }))
+    .sort((a, b) => b.miss - a.miss)
     .slice(0, 5)
-    .map(([num, data]) => `${num} (${data.missing})`);
-  
-  document.getElementById("coldNumbers").innerHTML = coldNumbers.join(", ");
-  
-  // Frequency analysis
+    .map(d => `${d.num} (${d.miss})`)
+    .join(", ");
+  document.getElementById("coldNumbers").innerHTML = coldNumbers;
+
   let frequencyHtml = "";
-  Object.entries(stats).forEach(([num, data]) => {
-    const heat = Math.min(100, Math.max(0, 100 - (data.missing * 5)));
+  stats.forEach((s, i) => {
+    const heat = Math.min(100, Math.max(0, 100 - (s.missing * 5)));
     frequencyHtml += `
-      <div>${num}: ${data.frequency} times 
+      <div>${i}: ${s.frequency} times 
         <div class="heat-bar">
           <div class="heat-fill" style="width: ${heat}%; background: ${heat > 70 ? '#ff6b6b' : heat > 40 ? '#ffa500' : '#4fc3f7'};"></div>
         </div>
       </div>`;
   });
   document.getElementById("frequencyAnalysis").innerHTML = frequencyHtml;
-  
-  // Consecutive analysis
+
   let consecutiveHtml = "";
-  Object.entries(stats).forEach(([num, data]) => {
-    consecutiveHtml += `<div>${num}: Max ${data.maxConsecutive} consecutive</div>`;
+  stats.forEach((s, i) => {
+    consecutiveHtml += `<div>${i}: Max ${s.maxConsecutive} consecutive</div>`;
   });
   document.getElementById("consecutiveAnalysis").innerHTML = consecutiveHtml;
 }
@@ -386,9 +312,7 @@ function updateWinRate() {
   document.getElementById("winRate").innerText = `Win Rate: ${winRate}% (${winCount}W/${lossCount}L)`;
 }
 
-/**
- * Fetch game data and update UI
- */
+// Fetch game data and update UI
 async function fetchData() {
   try {
     // Fetch current period
@@ -408,28 +332,28 @@ async function fetchData() {
     const data = await res.json();
     if (!data?.data?.list) throw new Error("Invalid history data");
 
-    // Process last 100 results for analysis
+    // Process last 100 results
     last100Results = data.data.list.slice(0, 100).map(item => {
       const num = parseInt(item.number);
       return { period: item.issueNumber, number: num, size: getBigSmall(num), color: getColor(num) };
     });
 
-    // Process recent history for prediction
+    // Process recent history
     const recentHistory = data.data.list.slice(0, 20).map(item => {
       const num = parseInt(item.number);
       return { period: item.issueNumber, number: num, size: getBigSmall(num), color: getColor(num) };
     });
 
     // Generate prediction
-    const prediction = predict(recentHistory);
-    document.getElementById("predictionBox").innerText = `Prediction → ${prediction.text}`;
-    document.getElementById("confidenceBox").innerText = `Confidence: ${prediction.conf}%`;
-    document.getElementById("patternBox").innerText = `Pattern: ${prediction.pattern}`;
+    const { text, conf, strategy } = predict(recentHistory);
+    document.getElementById("predictionBox").innerText = `Prediction → ${text}`;
+    document.getElementById("confidenceBox").innerText = `Confidence: ${conf}%`;
+    document.getElementById("currentStrategy").innerText = `Using: ${strategy}`;
 
     // Update prediction history
-    if (prediction.text !== "Analyzing..." && period !== "Unavailable") {
+    if (text !== "Analyzing..." && period !== "Unavailable") {
       if (!predictionHistory.find(p => p.period === period)) {
-        predictionHistory.unshift({ period, prediction: prediction.text, actual: "--", status: "Waiting" });
+        predictionHistory.unshift({ period, prediction: text, actual: "--", status: "Waiting" });
         if (predictionHistory.length > 20) predictionHistory.pop();
       }
     }
@@ -439,21 +363,19 @@ async function fetchData() {
       const match = recentHistory.find(h => h.period === ph.period);
       if (match && ph.status === "Waiting") {
         ph.actual = match.size;
-        ph.status = ph.prediction === ph.actual ? "Win" : "Loss";
-        
-        // Update win/loss counts
-        if (ph.status === "Win") winCount++;
-        else lossCount++;
+        if (ph.prediction === "Skip") {
+          ph.status = "Skipped";
+        } else {
+          ph.status = ph.prediction === match.size ? "Win" : "Loss";
+          if (ph.status === "Win") winCount++;
+          else lossCount++;
+        }
       }
     });
 
-    // Update number analysis
-    const stats = analyzeNumbers(last100Results);
-    updateAnalysisDisplays(stats);
-    
-    // Update win rate
+    // Update analysis and win rate
+    updateAnalysisDisplays(analyzeNumbers(last100Results));
     updateWinRate();
-
     renderTable();
   } catch (e) {
     document.getElementById("predictionBox").innerText = "Prediction Error";
@@ -462,9 +384,7 @@ async function fetchData() {
   }
 }
 
-/**
- * Render prediction or game history table
- */
+// Render prediction or game history table
 function renderTable() {
   const head = document.getElementById("tableHead");
   const body = document.getElementById("tableBody");
@@ -512,54 +432,48 @@ function renderTable() {
   }
 }
 
-// Event listeners for tabs
+// Tab switching
+function setTabActive(tabId) {
+  ['predTab', 'gameTab', 'analysisTab', 'strategyTab'].forEach(id => {
+    document.getElementById(id).classList.remove("active");
+  });
+  document.getElementById(tabId).classList.add("active");
+}
+
 document.getElementById("predTab").onclick = () => {
-  document.getElementById("predTab").classList.add("active");
-  document.getElementById("gameTab").classList.remove("active");
-  document.getElementById("analysisTab").classList.remove("active");
-  document.getElementById("strategyTab").classList.remove("active");
+  setTabActive("predTab");
+  document.querySelector(".history-container").style.display = "block";
   document.getElementById("analysisContainer").style.display = "none";
   document.getElementById("strategyContainer").style.display = "none";
   renderTable();
 };
 
 document.getElementById("gameTab").onclick = () => {
-  document.getElementById("gameTab").classList.add("active");
-  document.getElementById("predTab").classList.remove("active");
-  document.getElementById("analysisTab").classList.remove("active");
-  document.getElementById("strategyTab").classList.remove("active");
+  setTabActive("gameTab");
+  document.querySelector(".history-container").style.display = "block";
   document.getElementById("analysisContainer").style.display = "none";
   document.getElementById("strategyContainer").style.display = "none";
   renderTable();
 };
 
 document.getElementById("analysisTab").onclick = () => {
-  document.getElementById("analysisTab").classList.add("active");
-  document.getElementById("predTab").classList.remove("active");
-  document.getElementById("gameTab").classList.remove("active");
-  document.getElementById("strategyTab").classList.remove("active");
+  setTabActive("analysisTab");
+  document.querySelector(".history-container").style.display = "none";
   document.getElementById("analysisContainer").style.display = "grid";
   document.getElementById("strategyContainer").style.display = "none";
-  document.getElementById("tableHead").innerHTML = "";
-  document.getElementById("tableBody").innerHTML = "<tr><td>Number analysis displayed above</td></tr>";
 };
 
 document.getElementById("strategyTab").onclick = () => {
-  document.getElementById("strategyTab").classList.add("active");
-  document.getElementById("predTab").classList.remove("active");
-  document.getElementById("gameTab").classList.remove("active");
-  document.getElementById("analysisTab").classList.remove("active");
+  setTabActive("strategyTab");
+  document.querySelector(".history-container").style.display = "none";
   document.getElementById("analysisContainer").style.display = "none";
   document.getElementById("strategyContainer").style.display = "block";
-  document.getElementById("tableHead").innerHTML = "";
-  document.getElementById("tableBody").innerHTML = "<tr><td>Strategy information displayed above</td></tr>";
 };
 
-// Initialize
+// Initial setup
+setInterval(fetchData, 5000);
 setInterval(updateLiveTime, 1000);
-setInterval(fetchData, 10000);
 fetchData();
-updateLiveTime();
 </script>
 </body>
 </html>
