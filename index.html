@@ -3,58 +3,192 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>THE BDT PREDICTOR V.5 (Loss Reduction)</title>
+  <title>THE BDT PREDICTOR V.3 (Advanced Patterns)</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Outfit', sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; text-align: center; }
-    .header { font-size: 20px; font-weight: bold; color: #00ffea; margin-bottom: 10px; }
-    .card { background: #111; border: 1px solid #00ffea; border-radius: 10px; padding: 10px; margin-bottom: 12px; }
-    .prediction-btn { margin: 10px auto; display: block; background: #00ffea33; color: #00ffea; border: 1px solid #00ffea;
-      border-radius: 8px; padding: 12px; font-weight: bold; font-size: 18px; }
-    #patternBox { color: #aaa; font-size: 14px; margin-top: 5px; }
-    .tab-buttons { display: flex; border: 1px solid #00ffea; border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
-    .tab-buttons button { flex: 1; background: #111; color: #00ffea; padding: 8px; border: none; cursor: pointer; font-weight: bold; }
-    .tab-buttons button.active { background: #00ffea33; }
-    .history-container { border: 1px solid #00ffea; border-radius: 8px; overflow: hidden; max-height: 400px; overflow-y: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { font-size: 13px; border-bottom: 1px solid #222; padding: 6px; }
-    th { background: #111; color: #00ffea; position: sticky; top: 0; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-    .dot.red { background: red; } .dot.green { background: lime; } .dot.violet { background: violet; }
-    .num.red { color: red; font-weight: bold; } .num.green { color: lime; font-weight: bold; } .num.violet { color: violet; font-weight: bold; }
-    .status.win { color: lime; font-weight: bold; } .status.loss { color: red; font-weight: bold; }
-    .status.skipped { color: yellow; font-weight: bold; }
-    .analysis-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
-    .analysis-card { background: #111; border: 1px solid #00ffea; border-radius: 8px; padding: 10px; text-align: left; }
-    .analysis-card h3 { color: #00ffea; margin-top: 0; font-size: 14px; }
-    .analysis-data { font-size: 12px; line-height: 1.6; }
-    .hot { color: #ff6b6b; } .cold { color: #4fc3f7; }
-    .loader { border: 2px solid #333; border-top: 2px solid #00ffea; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 10px auto; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .win-rate { margin-top: 10px; font-size: 14px; }
-    .strategy { background: #1a1a1a; padding: 10px; border-radius: 8px; margin-top: 10px; text-align: left; }
-    .strategy h4 { color: #00ffea; margin-top: 0; }
-    .heat-bar { height: 5px; background: #333; margin-top: 3px; border-radius: 3px; }
-    .heat-fill { height: 100%; border-radius: 3px; }
+    :root {
+      --primary-color: #00ffea;
+      --primary-transparent: #00ffea33;
+      --primary-hover: #00ffea4d;
+      --background: #000;
+      --card-bg: #111;
+      --table-border: #222;
+      --analysis-box-bg: #222;
+      --text-gray: #aaa;
+    }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--background);
+      color: #fff;
+      margin: 0;
+      padding: 10px;
+      text-align: center;
+      animation: slide-up-down 2s ease-in-out infinite;
+    }
+    .header {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    .prediction-btn {
+      margin: 10px auto;
+      display: block;
+      background: var(--primary-transparent);
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      padding: 12px;
+      font-weight: bold;
+      font-size: 18px;
+      transition: transform 0.2s;
+    }
+    .prediction-btn:hover {
+      transform: scale(1.05);
+    }
+    #patternBox {
+      color: var(--text-gray);
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .tab-buttons {
+      display: flex;
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .tab-buttons button {
+      flex: 1;
+      background: var(--card-bg);
+      color: var(--primary-color);
+      padding: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .tab-buttons button.active {
+      background: var(--primary-transparent);
+      transform: translateY(-2px);
+    }
+    .tab-buttons button:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+    .history-container {
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      font-size: 13px;
+      border-bottom: 1px solid var(--table-border);
+      padding: 6px;
+    }
+    th {
+      background: var(--card-bg);
+      color: var(--primary-color);
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot.red { background: red; }
+    .dot.green { background: lime; }
+    .dot.violet { background: violet; }
+    .num.red { color: red; font-weight: bold; }
+    .num.green { color: lime; font-weight: bold; }
+    .num.violet { color: violet; font-weight: bold; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .status.win { background: lime; color: #000; }
+    .status.loss { background: red; color: #fff; }
+    .status.pending { background: var(--text-gray); color: #000; }
+    .analysis-dashboard {
+      background: var(--card-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    .analysis-header {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+    .analysis-content {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .analysis-box {
+      flex: 1;
+      min-width: 100px;
+      margin: 5px;
+      padding: 8px;
+      background: var(--analysis-box-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      transition: transform 0.3s;
+    }
+    .analysis-box:hover {
+      transform: translateY(-3px);
+    }
+    .online { color: lime; }
+    .offline { color: red; }
+
+    @keyframes slide-up-down {
+      0% { transform: translateY(-10px); }
+      50% { transform: translateY(10px); }
+      100% { transform: translateY(-10px); }
+    }
   </style>
 </head>
 <body>
-  <div class="header">𝐓𝐇𝐄 𝐋𝐒𝐑 𝐏𝐑𝐄𝐃𝐈𝐂𝐓𝐎𝐑 𝐕.4</div>
+  <div class="header">𝐓𝐇𝐄 𝐋𝐒𝐑 𝐏𝐑𝐄𝐃𝐈𝐂𝐓𝐎𝐑 𝐕.6</div>
   <div class="card">
+    <div class="analysis-header">CURRENT PREDICTION</div>
     <div id="currentPeriod">Current Period: Loading...</div>
     <div id="liveTime">Time: --:--:--</div>
     <div id="predictionBox" class="prediction-btn">Prediction → Analyzing...</div>
     <div id="confidenceBox">Confidence: --%</div>
-    <div id="winRate" class="win-rate">Win Rate: --%</div>
+    <div id="patternBox"></div>
   </div>
-
+  <div class="analysis-dashboard">
+    <div class="analysis-header">ANALYSIS DASHBOARD</div>
+    <div class="analysis-content">
+      <div class="analysis-box">Total Wins: <span id="totalWins">0</span></div>
+      <div class="analysis-box">Total Losses: <span id="totalLosses">0</span></div>
+      <div class="analysis-box">Server Status: <span id="serverStatus" class="offline">Offline</span></div>
+    </div>
+  </div>
   <div class="tab-buttons">
     <button id="predTab" class="active">Prediction History</button>
     <button id="gameTab">Game History</button>
-    <button id="analysisTab">Number Analysis</button>
-    <button id="strategyTab">Strategy</button>
   </div>
-
   <div class="history-container">
     <table>
       <thead id="tableHead"></thead>
@@ -62,418 +196,281 @@
     </table>
   </div>
 
-  <div id="analysisContainer" class="analysis-container" style="display: none;">
-    <div class="analysis-card">
-      <h3>Hot Numbers (Frequent)</h3>
-      <div id="hotNumbers" class="analysis-data">Loading...</div>
-    </div>
-    <div class="analysis-card">
-      <h3>Cold Numbers (Missing)</h3>
-      <div id="coldNumbers" class="analysis-data">Loading...</div>
-    </div>
-    <div class="analysis-card">
-      <h3>Frequency Analysis</h3>
-      <div id="frequencyAnalysis" class="analysis-data">Loading...</div>
-    </div>
-    <div class="analysis-card">
-      <h3>Consecutive Analysis</h3>
-      <div id="consecutiveAnalysis" class="analysis-data">Loading...</div>
-    </div>
-  </div>
+  <script>
+    const CURRENT_API = 'https://api.bdg88zf.com/api/webapi/GetGameIssue';
+    const HISTORY_API = 'https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json';
 
-  <div id="strategyContainer" style="display: none;">
-    <div class="strategy">
-      <h4>Loss Reduction Strategy</h4>
-      <p>1. <strong>Pattern Break Detection:</strong> Identifies when streaks are likely to end.</p>
-      <p>2. <strong>Imbalance Correction:</strong> Bets against significant imbalances (difference > 10).</p>
-      <p>3. <strong>Heat-based Prediction:</strong> Uses hot/cold number analysis for better predictions.</p>
-      <p>4. <strong>Adaptive Confidence:</strong> Adjusts confidence based on historical trends.</p>
-      <p>5. <strong>Trend Following:</strong> Identifies and follows short-term trends.</p>
-      <p>6. <strong>Skip Low Confidence:</strong> Skips predictions below 75% confidence to minimize losses.</p>
-    </div>
-    <div class="strategy">
-      <h4>Current Strategy</h4>
-      <div id="currentStrategy">Analyzing patterns...</div>
-    </div>
-  </div>
+    const REQUEST_DATA = {
+      typeId: 1,
+      language: 0,
+      random: "e7fe6c090da2495ab8290dac551ef1ed",
+      signature: "1F390E2B2D8A55D693E57FD905AE73A7",
+      timestamp: 1723726679
+    };
 
-<script>
-const CURRENT_API = 'https://api.bdg88zf.com/api/webapi/GetGameIssue';
-const HISTORY_API = 'https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json';
+    let predictionHistory = [];
+    let lastFetchedPeriod = null;
+    let lastPrediction = null;
+    let winLevel = 0;
+    const MAX_WIN_LEVEL = 3;
 
-const REQUEST_DATA = {
-  typeId: 1,
-  language: 0,
-  random: "e7fe6c090da2495ab8290dac551ef1ed",
-  signature: "1F390E2B2D8A55D693E57FD905AE73A7",
-  timestamp: 1723726679
-};
-
-let predictionHistory = [];
-let last100Results = [];
-let winCount = 0;
-let lossCount = 0;
-
-// Utility to determine Big/Small based on number
-function getBigSmall(num) {
-  return num >= 5 ? "Big" : "Small";
-}
-
-// Utility to determine color (used only for game history display)
-function getColor(num) {
-  if ([1, 3, 7, 9].includes(num)) return "Green";
-  if ([2, 4, 6, 8].includes(num)) return "Red";
-  return "Violet";
-}
-
-// Update live time display
-function updateLiveTime() {
-  document.getElementById("liveTime").innerText = `Time: ${new Date().toLocaleTimeString('en-GB')}`;
-}
-
-/**
- * AI Prediction Logic: Simplified and optimized for Big/Small predictions
- * @param {Array} history - Array of historical game data
- * @returns {Object} - Prediction text and confidence
- */
-function predict(history) {
-  if (history.length < 10) {
-    return { text: "Analyzing...", conf: "--", strategy: "Awaiting data" };
-  }
-
-  const last100 = last100Results.length > 0 ? last100Results : history.slice(0, 100);
-  
-  // Count occurrences of Big and Small
-  let bigCount = last100.filter(item => item.size === "Big").length;
-  let smallCount = last100.length - bigCount;
-  
-  // Calculate imbalance
-  const imbalance = Math.abs(bigCount - smallCount);
-  const imbalanceThreshold = 10; // Reduced threshold for sensitivity
-  
-  // Check for streaks
-  const last5 = history.slice(0, 5).map(h => h.size);
-  const currentStreak = getCurrentStreak(last5);
-  
-  let prediction, conf, strategy;
-
-  // Strategy 1: Imbalance correction
-  if (imbalance > imbalanceThreshold) {
-    prediction = bigCount > smallCount ? "Small" : "Big";
-    conf = Math.min(95, 80 + Math.floor(imbalance / 2));
-    strategy = `Imbalance correction (${imbalance} difference)`;
-  }
-  // Strategy 2: Streak break detection
-  else if (currentStreak.count >= 3) {
-    prediction = currentStreak.type === "Big" ? "Small" : "Big";
-    conf = Math.min(90, 75 + (currentStreak.count - 2) * 5);
-    strategy = `Streak break (${currentStreak.count} ${currentStreak.type})`;
-  }
-  // Strategy 3: Heat-based prediction
-  else {
-    const heatPrediction = heatBasedPrediction(history);
-    if (heatPrediction.conf >= 75) {
-      return heatPrediction;
+    function getRandomColor() {
+      const hue = Math.floor(Math.random() * 360);
+      const saturation = Math.floor(Math.random() * 30) + 70;
+      const lightness = Math.floor(Math.random() * 20) + 50;
+      return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
     }
-    // Fallback: Recent trend
-    prediction = getRecentTrend(history.slice(0, 10));
-    conf = 70;
-    strategy = "Recent trend";
-  }
 
-  // Skip low-confidence predictions
-  if (conf < 75) {
-    return { text: "Skip", conf: 0, strategy: "Low confidence - Skip to minimize loss" };
-  }
-
-  return { text: prediction, conf, strategy };
-}
-
-// Heat-based prediction using number analysis
-function heatBasedPrediction(history) {
-  const stats = analyzeNumbers(last100Results);
-  const recentNumbers = history.slice(0, 5).map(h => h.number);
-  
-  let hotCount = 0, coldCount = 0;
-  recentNumbers.forEach(num => {
-    if (stats[num].missing <= 5) hotCount++;
-    else if (stats[num].missing >= 15) coldCount++;
-  });
-
-  if (hotCount >= 3) {
-    const hotBigCount = recentNumbers.filter(n => n >= 5 && stats[n].missing <= 5).length;
-    const hotSmallCount = hotCount - hotBigCount;
-    if (hotBigCount > hotSmallCount) {
-      return { text: "Big", conf: 85, strategy: "Hot numbers trend (Big)" };
-    } else if (hotSmallCount > hotBigCount) {
-      return { text: "Small", conf: 85, strategy: "Hot numbers trend (Small)" };
+    function updateColorScheme() {
+      const primaryColor = getRandomColor();
+      const primaryTransparent = primaryColor.replace(')', ', 0.2)').replace('hsl', 'hsla');
+      const primaryHover = primaryColor.replace(')', ', 0.3)').replace('hsl', 'hsla');
+      document.documentElement.style.setProperty('--primary-color', primaryColor);
+      document.documentElement.style.setProperty('--primary-transparent', primaryTransparent);
+      document.documentElement.style.setProperty('--primary-hover', primaryHover);
     }
-  }
 
-  if (coldCount >= 3) {
-    const coldBigCount = recentNumbers.filter(n => n >= 5 && stats[n].missing >= 15).length;
-    const coldSmallCount = coldCount - coldBigCount;
-    if (coldBigCount > coldSmallCount) {
-      return { text: "Small", conf: 80, strategy: "Cold numbers reversal (to Small)" };
-    } else if (coldSmallCount > coldBigCount) {
-      return { text: "Big", conf: 80, strategy: "Cold numbers reversal (to Big)" };
+    function getBigSmall(num) {
+      return num >= 5 ? "Big" : "Small";
     }
-  }
 
-  return { text: "", conf: 0, strategy: "" };
-}
-
-// Get current streak information
-function getCurrentStreak(lastResults) {
-  if (!lastResults.length) return { type: null, count: 0 };
-  let type = lastResults[0], count = 1;
-  for (let i = 1; i < lastResults.length; i++) {
-    if (lastResults[i] === type) count++;
-    else break;
-  }
-  return { type, count };
-}
-
-// Get recent trend
-function getRecentTrend(history) {
-  if (history.length < 5) return "Big";
-  let bigCount = history.filter(item => item.size === "Big").length;
-  return bigCount > history.length / 2 ? "Big" : "Small";
-}
-
-// Analyze numbers for stats
-function analyzeNumbers(history) {
-  const stats = Array(10).fill().map((_, i) => ({
-    frequency: 0,
-    missing: 0,
-    maxConsecutive: 0,
-    currentConsecutive: 1
-  }));
-
-  for (let i = history.length - 1; i >= 0; i--) {
-    const num = history[i].number;
-    stats[num].frequency++;
-    stats.forEach((s, n) => {
-      if (n !== num) s.missing++;
-      else s.missing = 0;
-    });
-
-    if (i < history.length - 1 && num === history[i + 1].number) {
-      stats[num].currentConsecutive++;
-      stats[num].maxConsecutive = Math.max(stats[num].maxConsecutive, stats[num].currentConsecutive);
-    } else {
-      stats[num].currentConsecutive = 1;
+    function getColor(num) {
+      if ([1, 3, 7, 9].includes(num)) return "Green";
+      if ([2, 4, 6, 8].includes(num)) return "Red";
+      return "Violet";
     }
-  }
-  return stats;
-}
 
-// Update analysis displays
-function updateAnalysisDisplays(stats) {
-  const hotNumbers = stats
-    .map((s, i) => ({ num: i, freq: s.frequency }))
-    .sort((a, b) => b.freq - a.freq)
-    .slice(0, 5)
-    .map(d => `${d.num} (${d.freq})`)
-    .join(", ");
-  document.getElementById("hotNumbers").innerHTML = hotNumbers;
+    function updateLiveTime() {
+      document.getElementById("liveTime").innerText = "Time: " + new Date().toLocaleTimeString('en-GB');
+    }
 
-  const coldNumbers = stats
-    .map((s, i) => ({ num: i, miss: s.missing }))
-    .sort((a, b) => b.miss - a.miss)
-    .slice(0, 5)
-    .map(d => `${d.num} (${d.miss})`)
-    .join(", ");
-  document.getElementById("coldNumbers").innerHTML = coldNumbers;
+    function updateStats() {
+      const wins = predictionHistory.filter(p => p.status === "Win").length;
+      const losses = predictionHistory.filter(p => p.status === "Loss").length;
+      document.getElementById("totalWins").innerText = wins;
+      document.getElementById("totalLosses").innerText = losses;
+    }
 
-  let frequencyHtml = "";
-  stats.forEach((s, i) => {
-    const heat = Math.min(100, Math.max(0, 100 - (s.missing * 5)));
-    frequencyHtml += `
-      <div>${i}: ${s.frequency} times 
-        <div class="heat-bar">
-          <div class="heat-fill" style="width: ${heat}%; background: ${heat > 70 ? '#ff6b6b' : heat > 40 ? '#ffa500' : '#4fc3f7'};"></div>
-        </div>
-      </div>`;
-  });
-  document.getElementById("frequencyAnalysis").innerHTML = frequencyHtml;
+    async function checkInternetSpeed() {
+      const statusElement = document.getElementById("serverStatus");
+      if (!navigator.onLine) {
+        statusElement.innerText = "Offline";
+        statusElement.className = "offline";
+        return;
+      }
 
-  let consecutiveHtml = "";
-  stats.forEach((s, i) => {
-    consecutiveHtml += `<div>${i}: Max ${s.maxConsecutive} consecutive</div>`;
-  });
-  document.getElementById("consecutiveAnalysis").innerHTML = consecutiveHtml;
-}
-
-// Update win rate display
-function updateWinRate() {
-  const total = winCount + lossCount;
-  const winRate = total > 0 ? Math.round((winCount / total) * 100) : 0;
-  document.getElementById("winRate").innerText = `Win Rate: ${winRate}% (${winCount}W/${lossCount}L)`;
-}
-
-// Fetch game data and update UI
-async function fetchData() {
-  try {
-    // Fetch current period
-    const periodRes = await fetch(CURRENT_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...REQUEST_DATA, timestamp: Math.floor(Date.now() / 1000) })
-    });
-    if (!periodRes.ok) throw new Error(`Period API failed: ${periodRes.status}`);
-    const periodData = await periodRes.json();
-    const period = periodData?.data?.issueNumber || "Unavailable";
-    document.getElementById("currentPeriod").innerText = `Current Period: ${period}`;
-
-    // Fetch history
-    const res = await fetch(HISTORY_API + '?ts=' + Date.now());
-    if (!res.ok) throw new Error(`History API failed: ${res.status}`);
-    const data = await res.json();
-    if (!data?.data?.list) throw new Error("Invalid history data");
-
-    // Process last 100 results
-    last100Results = data.data.list.slice(0, 100).map(item => {
-      const num = parseInt(item.number);
-      return { period: item.issueNumber, number: num, size: getBigSmall(num), color: getColor(num) };
-    });
-
-    // Process recent history
-    const recentHistory = data.data.list.slice(0, 20).map(item => {
-      const num = parseInt(item.number);
-      return { period: item.issueNumber, number: num, size: getBigSmall(num), color: getColor(num) };
-    });
-
-    // Generate prediction
-    const { text, conf, strategy } = predict(recentHistory);
-    document.getElementById("predictionBox").innerText = `Prediction → ${text}`;
-    document.getElementById("confidenceBox").innerText = `Confidence: ${conf}%`;
-    document.getElementById("currentStrategy").innerText = `Using: ${strategy}`;
-
-    // Update prediction history
-    if (text !== "Analyzing..." && period !== "Unavailable") {
-      if (!predictionHistory.find(p => p.period === period)) {
-        predictionHistory.unshift({ period, prediction: text, actual: "--", status: "Waiting" });
-        if (predictionHistory.length > 20) predictionHistory.pop();
+      try {
+        const startTime = performance.now();
+        await fetch('https://www.google.com', { mode: 'no-cors' });
+        const endTime = performance.now();
+        const latency = Math.round(endTime - startTime);
+        const speed = latency < 200 ? "Fast" : latency < 500 ? "Medium" : "Slow";
+        statusElement.innerText = `Online (${speed}, ${latency}ms)`;
+        statusElement.className = "online";
+      } catch (e) {
+        statusElement.innerText = "Offline";
+        statusElement.className = "offline";
       }
     }
 
-    // Update prediction results
-    predictionHistory.forEach(ph => {
-      const match = recentHistory.find(h => h.period === ph.period);
-      if (match && ph.status === "Waiting") {
-        ph.actual = match.size;
-        if (ph.prediction === "Skip") {
-          ph.status = "Skipped";
+    function ultraAIPredict(history) {
+      if (history.length < 3) {
+        return { prediction: Math.random() > 0.5 ? "Big" : "Small", confidence: 0.35 + Math.random() * (1 - 0.35) };
+      }
+
+      let recentResults = history.filter(h => h.actual !== "--").slice(0, 3);
+      let bigCount = 0;
+      let smallCount = 0;
+      let weight = 1;
+
+      for (let i = recentResults.length - 1; i >= 0; i--) {
+        let result = recentResults[i];
+        if (result.number >= 5) {
+          bigCount += weight;
         } else {
-          ph.status = ph.prediction === match.size ? "Win" : "Loss";
-          if (ph.status === "Win") winCount++;
-          else lossCount++;
+          smallCount += weight;
         }
+        weight *= 1.2;
       }
-    });
 
-    // Update analysis and win rate
-    updateAnalysisDisplays(analyzeNumbers(last100Results));
-    updateWinRate();
-    renderTable();
-  } catch (e) {
-    document.getElementById("predictionBox").innerText = "Prediction Error";
-    document.getElementById("currentPeriod").innerText = "Current Period: Error";
-    console.error("Fetch error:", e.message);
-  }
-}
+      let prediction = bigCount > smallCount ? "Big" : "Small";
+      let confidence = Math.min((Math.abs(bigCount - smallCount) / (bigCount + smallCount)) + 0.35, 1);
 
-// Render prediction or game history table
-function renderTable() {
-  const head = document.getElementById("tableHead");
-  const body = document.getElementById("tableBody");
+      if (winLevel >= MAX_WIN_LEVEL) {
+        prediction = prediction === "Big" ? "Small" : "Big";
+        confidence = 0.35;
+        winLevel = 0;
+      }
 
-  if (document.getElementById("predTab").classList.contains("active")) {
-    head.innerHTML = "<tr><th>Period</th><th>Prediction</th><th>Actual</th><th>Status</th></tr>";
-    body.innerHTML = predictionHistory.length === 0
-      ? "<tr><td colspan='4'>No predictions yet</td></tr>"
-      : predictionHistory.map(item => `
-        <tr>
-          <td>${item.period}</td>
-          <td>${item.prediction}</td>
-          <td>${item.actual}</td>
-          <td class="status ${item.status.toLowerCase()}">${item.status}</td>
-        </tr>`).join("");
-  } else if (document.getElementById("gameTab").classList.contains("active")) {
-    head.innerHTML = "<tr><th>Period</th><th>Number</th><th>Big/Small</th><th>Color</th></tr>";
-    body.innerHTML = "";
-    fetch(HISTORY_API + '?ts=' + Date.now())
-      .then(res => {
-        if (!res.ok) throw new Error(`History API failed: ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        if (!data?.data?.list) throw new Error("Invalid history data");
-        const history = data.data.list.slice(0, 10).map(item => {
-          const num = parseInt(item.number);
-          return { period: item.issueNumber, number: num, size: getBigSmall(num), color: getColor(num) };
-        });
-        body.innerHTML = history.map(item => {
-          const colorClass = item.color.toLowerCase();
-          return `
+      return { prediction, confidence };
+    }
+
+    function updateStatus(actualNumber, prediction) {
+      const resultType = actualNumber >= 5 ? "Big" : "Small";
+      const status = prediction === resultType ? "Win" : "Loss";
+
+      if (status === "Win") {
+        winLevel = Math.min(winLevel + 1, MAX_WIN_LEVEL);
+      } else {
+        winLevel = 0;
+      }
+
+      return { status, resultType };
+    }
+
+    async function fetchData() {
+      try {
+        updateColorScheme();
+
+        let period = "Unavailable";
+        try {
+          const periodRes = await fetch(CURRENT_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...REQUEST_DATA, timestamp: Math.floor(Date.now() / 1000) })
+          });
+          if (!periodRes.ok) {
+            console.warn(`Period API failed: ${periodRes.status}`);
+          } else {
+            const periodData = await periodRes.json();
+            if (periodData?.data?.issueNumber) {
+              period = periodData.data.issueNumber;
+            }
+          }
+        } catch (e) {
+          console.warn("Period API error:", e.message);
+        }
+
+        let history = [];
+        try {
+          const res = await fetch(HISTORY_API + '?ts=' + Date.now());
+          if (!res.ok) {
+            console.warn(`History API failed: ${res.status}`);
+          } else {
+            const data = await res.json();
+            if (data?.data?.list) {
+              history = data.data.list.slice(0, 10).map(item => {
+                const num = parseInt(item.number);
+                return { period: item.issueNumber, number: num, size: getBigSmall(num), color: getColor(num) };
+              });
+            }
+          }
+        } catch (e) {
+          console.warn("History API error:", e.message);
+        }
+
+        if (period !== "Unavailable" && period !== lastFetchedPeriod) {
+          // Update previous prediction if pending
+          if (predictionHistory.length > 0 && predictionHistory[0].status === "Pending") {
+            const match = history.find(h => h.period === predictionHistory[0].period);
+            if (match) {
+              const { status, resultType } = updateStatus(match.number, predictionHistory[0].prediction);
+              predictionHistory[0].actual = resultType;
+              predictionHistory[0].status = status;
+            }
+          }
+
+          // Generate new prediction
+          const aiDecision = ultraAIPredict(predictionHistory);
+          lastPrediction = aiDecision.prediction;
+
+          document.getElementById("currentPeriod").innerText = `Current Period: ${period}`;
+          document.getElementById("predictionBox").innerText = `Prediction → ${lastPrediction}`;
+          document.getElementById("confidenceBox").innerText = `Confidence: ${Math.round(aiDecision.confidence * 100)}%`;
+          document.getElementById("patternBox").innerText = ``;
+
+          // Add new prediction
+          if (!predictionHistory.find(p => p.period === period)) {
+            predictionHistory.unshift({
+              period: period,
+              prediction: lastPrediction,
+              actual: "--",
+              status: "Pending"
+            });
+            if (predictionHistory.length > 10) predictionHistory.pop();
+          }
+
+          lastFetchedPeriod = period;
+        }
+
+        updateStats();
+        renderTable();
+      } catch (e) {
+        console.error("Unexpected error:", e.message);
+      }
+    }
+
+    function renderTable() {
+      const head = document.getElementById("tableHead");
+      const body = document.getElementById("tableBody");
+
+      if (document.getElementById("predTab").classList.contains("active")) {
+        head.innerHTML = "<tr><th>Period</th><th>Prediction</th><th>Actual</th><th>Status</th></tr>";
+        body.innerHTML = predictionHistory.length === 0
+          ? "<tr><td colspan='4'>No predictions yet</td></tr>"
+          : predictionHistory.map((item, index) => `
             <tr>
               <td>${item.period}</td>
-              <td class="num ${colorClass}">${item.number}</td>
-              <td>${item.size}</td>
-              <td><span class="dot ${colorClass}"></span></td>
-            </tr>`;
-        }).join("");
-      })
-      .catch(e => {
-        body.innerHTML = "<tr><td colspan='4'>Error loading game history</td></tr>";
-        console.error("Game history error:", e.message);
-      });
-  }
-}
+              <td>${item.prediction}</td>
+              <td>${item.actual}</td>
+              <td><span class="status ${item.status.toLowerCase()}">${item.status.charAt(0)}</span></td>
+            </tr>`).join("");
+      } else {
+        head.innerHTML = "<tr><th>Period</th><th>Number</th><th>Big/Small</th><th>Color</th></tr>";
+        body.innerHTML = "<tr><td colspan='4'>Loading game history...</td></tr>";
+        fetch(HISTORY_API + '?ts=' + Date.now())
+          .then(res => {
+            if (!res.ok) {
+              body.innerHTML = "<tr><td colspan='4'>Error loading game history</td></tr>";
+              return;
+            }
+            return res.json();
+          })
+          .then(data => {
+            if (!data?.data?.list) {
+              body.innerHTML = "<tr><td colspan='4'>Error loading game history</td></tr>";
+              return;
+            }
+            const history = data.data.list.slice(0, 10).map(item => {
+              const num = parseInt(item.number);
+              return { period: item.issueNumber, number: num, size: getBigSmall(num), color: getColor(num) };
+            });
+            body.innerHTML = history.map((item, index) => {
+              const colorClass = item.color.toLowerCase();
+              return `
+                <tr>
+                  <td>${item.period}</td>
+                  <td class="num ${colorClass}">${item.number}</td>
+                  <td>${item.size}</td>
+                  <td><span class="dot ${colorClass}"></span></td>
+                </tr>`;
+            }).join("");
+          })
+          .catch(e => {
+            body.innerHTML = "<tr><td colspan='4'>Error loading game history</td></tr>";
+            console.error("Game history error:", e.message);
+          });
+      }
+    }
 
-// Tab switching
-function setTabActive(tabId) {
-  ['predTab', 'gameTab', 'analysisTab', 'strategyTab'].forEach(id => {
-    document.getElementById(id).classList.remove("active");
-  });
-  document.getElementById(tabId).classList.add("active");
-}
+    document.getElementById("predTab").onclick = () => {
+      document.getElementById("predTab").classList.add("active");
+      document.getElementById("gameTab").classList.remove("active");
+      renderTable();
+    };
+    document.getElementById("gameTab").onclick = () => {
+      document.getElementById("gameTab").classList.add("active");
+      document.getElementById("predTab").classList.remove("active");
+      renderTable();
+    };
 
-document.getElementById("predTab").onclick = () => {
-  setTabActive("predTab");
-  document.querySelector(".history-container").style.display = "block";
-  document.getElementById("analysisContainer").style.display = "none";
-  document.getElementById("strategyContainer").style.display = "none";
-  renderTable();
-};
-
-document.getElementById("gameTab").onclick = () => {
-  setTabActive("gameTab");
-  document.querySelector(".history-container").style.display = "block";
-  document.getElementById("analysisContainer").style.display = "none";
-  document.getElementById("strategyContainer").style.display = "none";
-  renderTable();
-};
-
-document.getElementById("analysisTab").onclick = () => {
-  setTabActive("analysisTab");
-  document.querySelector(".history-container").style.display = "none";
-  document.getElementById("analysisContainer").style.display = "grid";
-  document.getElementById("strategyContainer").style.display = "none";
-};
-
-document.getElementById("strategyTab").onclick = () => {
-  setTabActive("strategyTab");
-  document.querySelector(".history-container").style.display = "none";
-  document.getElementById("analysisContainer").style.display = "none";
-  document.getElementById("strategyContainer").style.display = "block";
-};
-
-// Initial setup
-setInterval(fetchData, 5000);
-setInterval(updateLiveTime, 1000);
-fetchData();
-</script>
+    updateColorScheme();
+    setInterval(updateLiveTime, 1000);
+    setInterval(fetchData, 10000);
+    setInterval(checkInternetSpeed, 5000);
+    fetchData();
+    updateLiveTime();
+    checkInternetSpeed();
+  </script>
 </body>
 </html>
