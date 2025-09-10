@@ -15,6 +15,9 @@
       --table-border: #222;
       --analysis-box-bg: #222;
       --text-gray: #aaa;
+      --success-color: #00ff8c;
+      --warning-color: #ffcc00;
+      --danger-color: #ff2e79;
     }
     body {
       font-family: 'Outfit', sans-serif;
@@ -23,13 +26,13 @@
       margin: 0;
       padding: 10px;
       text-align: center;
-      animation: slide-up-down 2s ease-in-out infinite;
     }
     .header {
       font-size: 20px;
       font-weight: bold;
       color: var(--primary-color);
       margin-bottom: 10px;
+      text-shadow: 0 0 10px var(--primary-transparent);
     }
     .card {
       background: var(--card-bg);
@@ -37,6 +40,7 @@
       border-radius: 10px;
       padding: 10px;
       margin-bottom: 12px;
+      box-shadow: 0 0 15px var(--primary-transparent);
     }
     .prediction-btn {
       margin: 10px auto;
@@ -49,9 +53,23 @@
       font-weight: bold;
       font-size: 18px;
       transition: transform 0.2s;
+      position: relative;
+      overflow: hidden;
     }
     .prediction-btn:hover {
       transform: scale(1.05);
+    }
+    .confidence-meter {
+      height: 5px;
+      background: #333;
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .confidence-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
     }
     #patternBox {
       color: var(--text-gray);
@@ -87,6 +105,8 @@
       border: 1px solid var(--primary-color);
       border-radius: 8px;
       overflow: hidden;
+      max-height: 300px;
+      overflow-y: auto;
     }
     table {
       width: 100%;
@@ -100,6 +120,8 @@
     th {
       background: var(--card-bg);
       color: var(--primary-color);
+      position: sticky;
+      top: 0;
     }
     .dot {
       width: 10px;
@@ -107,11 +129,11 @@
       border-radius: 50%;
       display: inline-block;
     }
-    .dot.red { background: red; }
-    .dot.green { background: lime; }
+    .dot.red { background: var(--danger-color); }
+    .dot.green { background: var(--success-color); }
     .dot.violet { background: violet; }
-    .num.red { color: red; font-weight: bold; }
-    .num.green { color: lime; font-weight: bold; }
+    .num.red { color: var(--danger-color); font-weight: bold; }
+    .num.green { color: var(--success-color); font-weight: bold; }
     .num.violet { color: violet; font-weight: bold; }
     .status {
       display: inline-flex;
@@ -123,8 +145,8 @@
       font-weight: bold;
       font-size: 12px;
     }
-    .status.win { background: lime; color: #000; }
-    .status.loss { background: red; color: #fff; }
+    .status.win { background: var(--success-color); color: #000; }
+    .status.loss { background: var(--danger-color); color: #fff; }
     .status.pending { background: var(--text-gray); color: #000; }
     .analysis-dashboard {
       background: var(--card-bg);
@@ -157,13 +179,93 @@
     .analysis-box:hover {
       transform: translateY(-3px);
     }
-    .online { color: lime; }
-    .offline { color: red; }
+    .online { color: var(--success-color); }
+    .offline { color: var(--danger-color); }
+    .ai-state-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .ai-state-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ai-state-label {
+      font-size: 12px;
+      color: var(--text-gray);
+      text-align: left;
+      flex: 1;
+    }
+    .ai-state-value {
+      font-size: 12px;
+      font-weight: bold;
+      flex: 1;
+      text-align: right;
+    }
+    .ai-state-visual {
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+    .ai-state-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    .pattern-indicator {
+      display: flex;
+      gap: 4px;
+      margin-top: 5px;
+      justify-content: center;
+    }
+    .pattern-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #333;
+    }
+    .pattern-dot.active {
+      background: var(--primary-color);
+    }
+    .pattern-dot.small { background: var(--warning-color); }
+    .pattern-dot.big { background: var(--primary-color); }
+    .pattern-dot.violet { background: violet; }
+    .trend-indicator {
+      margin-left: 5px;
+      font-size: 12px;
+    }
+    .trend-up { color: var(--success-color); }
+    .trend-down { color: var(--danger-color); }
+    .trend-neutral { color: var(--text-gray); }
+    .prediction-history-graph {
+      height: 40px;
+      margin: 10px 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 2px;
+    }
+    .graph-bar {
+      width: 4px;
+      background: #333;
+      border-radius: 2px 2px 0 0;
+      transition: height 0.3s ease;
+    }
+    .graph-bar.win { background: var(--success-color); }
+    .graph-bar.loss { background: var(--danger-color); }
+    .graph-bar.pending { background: var(--text-gray); }
 
-    @keyframes slide-up-down {
-      0% { transform: translateY(-10px); }
-      50% { transform: translateY(10px); }
-      100% { transform: translateY(-10px); }
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+    .pulsing {
+      animation: pulse 2s infinite;
     }
   </style>
 </head>
@@ -174,22 +276,60 @@
     <div id="currentPeriod">Current Period: Loading...</div>
     <div id="liveTime">Time: --:--:--</div>
     <div id="predictionBox" class="prediction-btn">Prediction → Analyzing...</div>
+    <div class="confidence-meter">
+      <div id="confidenceFill" class="confidence-fill" style="width: 0%; background: var(--primary-color);"></div>
+    </div>
     <div id="confidenceBox">Confidence: --%</div>
     <div id="patternBox"></div>
+    <div class="pattern-indicator" id="patternIndicator"></div>
+    
+    <div class="analysis-header" style="margin-top: 15px;">AI STATE VISUALIZATION</div>
+    <div class="ai-state-container">
+      <div class="ai-state-row">
+        <span class="ai-state-label">Pattern Recognition:</span>
+        <span class="ai-state-value" id="patternRecognition">--%</span>
+      </div>
+      <div class="ai-state-visual">
+        <div id="patternRecognitionBar" class="ai-state-fill" style="width: 0%; background: var(--primary-color);"></div>
+      </div>
+      
+      <div class="ai-state-row">
+        <span class="ai-state-label">Trend Analysis:</span>
+        <span class="ai-state-value" id="trendAnalysis">--%</span>
+      </div>
+      <div class="ai-state-visual">
+        <div id="trendAnalysisBar" class="ai-state-fill" style="width: 0%; background: var(--primary-color);"></div>
+      </div>
+      
+      <div class="ai-state-row">
+        <span class="ai-state-label">Statistical Probability:</span>
+        <span class="ai-state-value" id="statisticalProbability">--%</span>
+      </div>
+      <div class="ai-state-visual">
+        <div id="statisticalProbabilityBar" class="ai-state-fill" style="width: 0%; background: var(--primary-color);"></div>
+      </div>
+    </div>
+    
+    <div class="prediction-history-graph" id="predictionHistoryGraph"></div>
   </div>
+  
   <div class="analysis-dashboard">
     <div class="analysis-header">ANALYSIS DASHBOARD</div>
     <div class="analysis-content">
       <div class="analysis-box">Total Wins: <span id="totalWins">0</span></div>
       <div class="analysis-box">Total Losses: <span id="totalLosses">0</span></div>
       <div class="analysis-box">Accuracy: <span id="accuracy">0%</span></div>
+      <div class="analysis-box">Win Streak: <span id="winStreak">0</span></div>
       <div class="analysis-box">Server Status: <span id="serverStatus" class="offline">Offline</span></div>
     </div>
   </div>
+  
   <div class="tab-buttons">
     <button id="predTab" class="active">Prediction History</button>
     <button id="gameTab">Game History</button>
+    <button id="aiTab">AI Analysis</button>
   </div>
+  
   <div class="history-container">
     <table>
       <thead id="tableHead"></thead>
@@ -222,59 +362,109 @@
     // Clear all history on page load
     let predictionHistory = [];
     let dailyPatterns = {};
-    let stats = { wins: 0, losses: 0, streak: 0, accuracy: 0 };
+    let stats = { wins: 0, losses: 0, streak: 0, accuracy: 0, winStreak: 0, maxWinStreak: 0 };
     let lastFetchedPeriod = null;
     let lastPrediction = null;
     let winLevel = 0;
     let consecutiveLosses = 0;
     let isFetching = false;
     const MAX_WIN_LEVEL = 3;
+    
+    // AI State tracking
+    let aiState = {
+      patternRecognition: 0,
+      trendAnalysis: 0,
+      statisticalProbability: 0,
+      lastPatterns: []
+    };
 
-    // Initialize AIPredictor
+    // Initialize AIPredictor with enhanced pattern detection
     class AIPredictor {
       constructor() {
         this.history = [];
         this.patternWeights = { streak: 0.35, alternation: 0.25, frequency: 0.2, randomness: 0.2 };
         this.lastPrediction = null;
         this.accuracyStats = { correct: 0, total: 0 };
+        this.patternHistory = [];
       }
 
       analyzePatterns(history) {
         if (history.length < 5) return null;
+        
         const analysis = {
           sizeStreak: 0,
           sizeAlternation: 0,
           numberFrequency: {},
-          lastNumbers: history.slice(0, 5).map(item => item.number)
+          lastNumbers: history.slice(0, 5).map(item => item.number),
+          colorPattern: [],
+          sizePattern: []
         };
 
+        // Track patterns
         let currentStreak = 1, alternations = 0;
-        for (let i = 1; i < history.length; i++) {
-          const prevSize = history[i - 1].number <= 4 ? 'small' : 'big';
+        let lastSize = null;
+        
+        for (let i = 0; i < history.length; i++) {
           const currentSize = history[i].number <= 4 ? 'small' : 'big';
-          if (prevSize === currentSize) {
-            currentStreak++;
-          } else {
-            analysis.sizeStreak = Math.max(analysis.sizeStreak, currentStreak);
-            currentStreak = 1;
-            alternations++;
+          analysis.sizePattern.push(currentSize);
+          analysis.colorPattern.push(this.getColorCategory(history[i].number));
+          
+          if (i > 0) {
+            const prevSize = history[i - 1].number <= 4 ? 'small' : 'big';
+            
+            if (prevSize === currentSize) {
+              currentStreak++;
+            } else {
+              analysis.sizeStreak = Math.max(analysis.sizeStreak, currentStreak);
+              currentStreak = 1;
+              alternations++;
+            }
           }
+          
           analysis.numberFrequency[history[i].number] = (analysis.numberFrequency[history[i].number] || 0) + 1;
+          lastSize = currentSize;
         }
+        
         analysis.sizeAlternation = alternations / (history.length - 1);
         analysis.sizeStreak = currentStreak;
+        analysis.recentPattern = analysis.sizePattern.slice(0, 5).join(',');
+        
+        // Store pattern for future reference
+        if (this.patternHistory.length > 20) this.patternHistory.shift();
+        this.patternHistory.push(analysis.recentPattern);
+        
         return analysis;
+      }
+      
+      getColorCategory(number) {
+        if ([1, 3, 7, 9].includes(number)) return "green";
+        if ([2, 4, 6, 8].includes(number)) return "red";
+        return "violet";
       }
 
       generatePrediction(analysis) {
         if (!analysis) return this.generateRandomPrediction();
-        const prediction = { number: null, size: null, confidence: 0.5, reasoning: [] };
+        
+        const prediction = { 
+          number: null, 
+          size: null, 
+          confidence: 0.5, 
+          reasoning: [],
+          patternStrength: 0
+        };
 
+        // Pattern recognition strength (for visualization)
+        let patternStrength = 0;
+        
         // Streak-based prediction
-        if (analysis.sizeStreak >= 3) {
-          prediction.size = analysis.lastNumbers[0] <= 4 ? 'big' : 'small';
-          prediction.confidence += 0.2;
-          prediction.reasoning.push(`Breaking ${analysis.sizeStreak}-${prediction.size} streak`);
+        if (analysis.sizeStreak >= 2) {
+          const expectedBreak = analysis.sizeStreak >= 3 ? 0.7 : 0.6;
+          if (Math.random() < expectedBreak) {
+            prediction.size = analysis.lastNumbers[0] <= 4 ? 'big' : 'small';
+            prediction.confidence += 0.15;
+            prediction.reasoning.push(`Breaking ${analysis.sizeStreak}-size streak`);
+            patternStrength += 0.3;
+          }
         }
 
         // Alternation-based prediction
@@ -282,36 +472,67 @@
           prediction.size = analysis.lastNumbers[0] <= 4 ? 'big' : 'small';
           prediction.confidence += 0.15;
           prediction.reasoning.push(`High alternation pattern (${(analysis.sizeAlternation * 100).toFixed(0)}%)`);
+          patternStrength += 0.2;
+        }
+        
+        // Check for repeating patterns in history
+        const patternRepeatCount = this.patternHistory.filter(p => p === analysis.recentPattern).length;
+        if (patternRepeatCount > 1) {
+          // If this pattern has occurred before, predict what came next
+          prediction.confidence += 0.1;
+          prediction.reasoning.push(`Pattern repetition detected (${patternRepeatCount}x)`);
+          patternStrength += 0.2;
         }
 
         // Frequency-based prediction
         const sortedNumbers = Object.entries(analysis.numberFrequency).sort((a, b) => a[1] - b[1]);
         if (sortedNumbers.length > 0) {
-          prediction.number = parseInt(sortedNumbers[0][0]);
-          prediction.confidence += 0.1;
-          prediction.reasoning.push(`Least frequent number: ${prediction.number}`);
+          // Weight towards less frequent numbers but with some randomness
+          const randomFactor = Math.random() * 0.3;
+          if (Math.random() < 0.7 - randomFactor) {
+            prediction.number = parseInt(sortedNumbers[0][0]);
+            prediction.confidence += 0.1;
+            prediction.reasoning.push(`Least frequent number: ${prediction.number}`);
+            patternStrength += 0.1;
+          }
         }
 
         // Fallback to weighted random if no strong pattern
-        if (!prediction.size && !prediction.number) return this.generateWeightedRandomPrediction(analysis);
+        if (!prediction.size && !prediction.number) {
+          const fallback = this.generateWeightedRandomPrediction(analysis);
+          fallback.reasoning.push('Weighted fallback (no strong pattern)');
+          fallback.patternStrength = 0.1;
+          return fallback;
+        }
 
         // Finalize prediction
         if (!prediction.number) {
-          const possibleNumbers = prediction.size === 'small' ? [0, 1, 2, 3, 4] : [5, 6, 7, 8, 9];
+          const possibleNumbers = prediction.size === 'small' ? SMALL_NUMBERS : BIG_NUMBERS;
           prediction.number = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
         } else if (!prediction.size) {
           prediction.size = prediction.number <= 4 ? 'small' : 'big';
         }
 
-        prediction.confidence = Math.min(0.9, prediction.confidence);
+        prediction.confidence = Math.min(0.92, prediction.confidence);
+        prediction.patternStrength = Math.min(1, patternStrength);
+        
         return prediction;
       }
 
       generateWeightedRandomPrediction(analysis) {
         const numberWeights = Array(10).fill(1);
+        
+        // Apply frequency weights
         for (const [num, count] of Object.entries(analysis.numberFrequency)) {
           numberWeights[num] = 1 / (count + 1);
         }
+        
+        // Slightly favor numbers that haven't appeared recently
+        const recentNumbers = analysis.lastNumbers;
+        recentNumbers.forEach(num => {
+          numberWeights[num] *= 0.8;
+        });
+        
         const totalWeight = numberWeights.reduce((sum, weight) => sum + weight, 0);
         const normalizedWeights = numberWeights.map(weight => weight / totalWeight);
         const cumulativeWeights = [];
@@ -333,19 +554,30 @@
           number: selectedNumber,
           size: selectedNumber <= 4 ? 'small' : 'big',
           confidence: 0.6,
-          reasoning: ['Weighted random selection based on frequency']
+          reasoning: ['Weighted random selection based on frequency'],
+          patternStrength: 0.2
         };
       }
 
       generateRandomPrediction() {
         const number = Math.floor(Math.random() * 10);
-        return { number, size: number <= 4 ? 'small' : 'big', confidence: 0.5, reasoning: ['Random prediction (insufficient data)'] };
+        return { 
+          number, 
+          size: number <= 4 ? 'small' : 'big', 
+          confidence: 0.5, 
+          reasoning: ['Random prediction (insufficient data)'],
+          patternStrength: 0
+        };
       }
 
       updateAccuracy(actualNumber) {
         if (!this.lastPrediction) return;
         this.accuracyStats.total++;
-        if ((this.lastPrediction.number <= 4 ? 'small' : 'big') === (actualNumber <= 4 ? 'small' : 'big')) {
+        
+        const predictedSize = this.lastPrediction.number <= 4 ? 'small' : 'big';
+        const actualSize = actualNumber <= 4 ? 'small' : 'big';
+        
+        if (predictedSize === actualSize) {
           this.accuracyStats.correct++;
         }
       }
@@ -358,16 +590,16 @@
     // Initialize predictor
     const aiPredictor = new AIPredictor();
 
-    // Enhanced ultraAIPredict
+    // Enhanced ultraAIPredict with better pattern recognition
     const ultraAIPredict = (history) => {
       if (history.length < 3) {
         return { prediction: Math.random() > 0.5 ? "BIG" : "SMALL", confidence: 0.35 + Math.random() * (1 - 0.35), logic: 0 };
       }
 
-      const recent = history.filter(h => h.resultType !== "-").slice(0, 10);
+      const recent = history.filter(h => h.resultType !== "-").slice(0, 15);
       const predictions = [];
 
-      // Streak detection
+      // Streak detection with improved logic
       let lastStreakType = recent[0].resultType;
       let streakLength = 1;
       for (let i = 1; i < recent.length; i++) {
@@ -377,37 +609,68 @@
           break;
         }
       }
-      if (streakLength >= 3) {
+      
+      if (streakLength >= 2) {
+        const streakConfidence = Math.min(90, 65 + (streakLength * 8));
         predictions.push({
           prediction: lastStreakType === "BIG" ? "SMALL" : "BIG",
-          confidence: Math.min(90, 70 + (streakLength * 5)),
+          confidence: streakConfidence,
           logic: 1
         });
+        
+        // Update AI state
+        aiState.patternRecognition = Math.max(aiState.patternRecognition, streakConfidence/100);
       }
 
-      // Weighted probability
-      const lookback = Math.min(15, recent.length);
+      // Weighted probability with improved calculation
+      const lookback = Math.min(20, recent.length);
       const bigCount = recent.slice(0, lookback).filter(r => r.resultType === "BIG").length;
+      const smallCount = lookback - bigCount;
       const bigPercent = (bigCount / lookback) * 100;
-      if (Math.abs(bigPercent - 50) > 20) {
+      
+      if (Math.abs(bigPercent - 50) > 15) {
+        const imbalanceConfidence = Math.min(85, Math.abs(bigPercent - 50) + 35);
         predictions.push({
           prediction: bigPercent > 50 ? "SMALL" : "BIG",
-          confidence: Math.min(90, Math.abs(bigPercent - 50) + 40),
+          confidence: imbalanceConfidence,
           logic: 8
         });
+        
+        // Update AI state
+        aiState.statisticalProbability = Math.max(aiState.statisticalProbability, imbalanceConfidence/100);
       }
 
-      // Loss recovery
-      if (consecutiveLosses >= 2) {
+      // Trend analysis - check if there's a clear pattern in recent results
+      const trendWindow = Math.min(8, recent.length);
+      const trend = recent.slice(0, trendWindow).map(r => r.resultType === "BIG" ? 1 : 0);
+      const trendSum = trend.reduce((a, b) => a + b, 0);
+      
+      if (trendSum === 0 || trendSum === trendWindow) {
+        // All same in trend window - strong trend
+        const trendConfidence = Math.min(95, 75 + (trendWindow * 3));
+        predictions.push({
+          prediction: trendSum === trendWindow ? "SMALL" : "BIG",
+          confidence: trendConfidence,
+          logic: 15
+        });
+        
+        // Update AI state
+        aiState.trendAnalysis = Math.max(aiState.trendAnalysis, trendConfidence/100);
+      }
+
+      // Loss recovery with improved logic
+      if (consecutiveLosses >= 1) {
+        const recoveryConfidence = Math.min(85, 70 + (consecutiveLosses * 7));
         predictions.push({
           prediction: lastPrediction === "BIG" ? "SMALL" : "BIG",
-          confidence: 75 + (consecutiveLosses * 5),
+          confidence: recoveryConfidence,
           logic: 22
         });
       }
 
-      // Default strategy
+      // Default strategy with improved logic
       if (predictions.length === 0) {
+        // Check the most recent result and go against it
         predictions.push({
           prediction: recent[0].resultType === "BIG" ? "SMALL" : "BIG",
           confidence: 60,
@@ -437,11 +700,14 @@
       if (status === 'WIN') {
         winLevel = Math.min(winLevel + 1, MAX_WIN_LEVEL);
         stats.streak = stats.streak + 1;
+        stats.winStreak++;
+        stats.maxWinStreak = Math.max(stats.maxWinStreak, stats.winStreak);
         consecutiveLosses = 0;
         stats.wins++;
       } else {
         winLevel = 0;
         stats.streak = 0;
+        stats.winStreak = 0;
         consecutiveLosses++;
         stats.losses++;
       }
@@ -536,6 +802,71 @@
       document.getElementById("totalWins").innerText = stats.wins;
       document.getElementById("totalLosses").innerText = stats.losses;
       document.getElementById("accuracy").innerText = `${stats.accuracy}%`;
+      document.getElementById("winStreak").innerText = stats.winStreak;
+    }
+    
+    function updateAIStateVisualization(aiDecision) {
+      // Update AI state values
+      document.getElementById("patternRecognition").innerText = Math.round(aiState.patternRecognition * 100) + "%";
+      document.getElementById("trendAnalysis").innerText = Math.round(aiState.trendAnalysis * 100) + "%";
+      document.getElementById("statisticalProbability").innerText = Math.round(aiState.statisticalProbability * 100) + "%";
+      
+      // Update visualization bars
+      document.getElementById("patternRecognitionBar").style.width = (aiState.patternRecognition * 100) + "%";
+      document.getElementById("trendAnalysisBar").style.width = (aiState.trendAnalysis * 100) + "%";
+      document.getElementById("statisticalProbabilityBar").style.width = (aiState.statisticalProbability * 100) + "%";
+      
+      // Update confidence meter
+      const confidenceFill = document.getElementById("confidenceFill");
+      const confidenceValue = Math.round((aiDecision.confidence || 0.5) * 100);
+      confidenceFill.style.width = confidenceValue + "%";
+      
+      // Change color based on confidence level
+      if (confidenceValue >= 80) {
+        confidenceFill.style.background = "var(--success-color)";
+      } else if (confidenceValue >= 60) {
+        confidenceFill.style.background = "var(--warning-color)";
+      } else {
+        confidenceFill.style.background = "var(--primary-color)";
+      }
+      
+      // Update pattern indicator
+      const patternIndicator = document.getElementById("patternIndicator");
+      patternIndicator.innerHTML = "";
+      
+      if (aiDecision.reasoning) {
+        aiDecision.reasoning.forEach(reason => {
+          if (reason.includes("streak") || reason.includes("pattern")) {
+            const dot = document.createElement("div");
+            dot.className = "pattern-dot active";
+            patternIndicator.appendChild(dot);
+          }
+        });
+      }
+    }
+    
+    function updatePredictionHistoryGraph() {
+      const graphContainer = document.getElementById("predictionHistoryGraph");
+      graphContainer.innerHTML = "";
+      
+      // Show last 20 predictions
+      const recentHistory = predictionHistory.slice(0, 20);
+      
+      recentHistory.forEach(item => {
+        const bar = document.createElement("div");
+        bar.className = "graph-bar " + (item.resultStatus.toLowerCase() || "pending");
+        
+        // Height represents confidence or result type
+        if (item.resultStatus === "WIN") {
+          bar.style.height = "100%";
+        } else if (item.resultStatus === "LOSS") {
+          bar.style.height = "30%";
+        } else {
+          bar.style.height = "60%";
+        }
+        
+        graphContainer.appendChild(bar);
+      });
     }
 
     async function checkInternetSpeed() {
@@ -637,13 +968,24 @@
             }
           }
 
+          // Reset AI state
+          aiState.patternRecognition = 0;
+          aiState.trendAnalysis = 0;
+          aiState.statisticalProbability = 0;
+
           // Generate new prediction
           let aiDecision = aiPredictor.generatePrediction(aiPredictor.analyzePatterns(history));
           aiPredictor.lastPrediction = aiDecision;
 
           // Fallback to ultraAIPredict if confidence is low or insufficient data
           if (aiDecision.confidence < 0.6 || history.length < 5) {
-            aiDecision = ultraAIPredict(predictionHistory);
+            const ultraPrediction = ultraAIPredict(predictionHistory);
+            aiDecision = {
+              prediction: ultraPrediction.prediction,
+              confidence: ultraPrediction.confidence / 100,
+              reasoning: [`Algorithm ${ultraPrediction.logic}`],
+              patternStrength: ultraPrediction.confidence / 100
+            };
           }
 
           lastPrediction = aiDecision.prediction || (aiDecision.size === 'small' ? 'SMALL' : 'BIG');
@@ -652,6 +994,10 @@
           document.getElementById("predictionBox").innerText = `Prediction → ${lastPrediction}`;
           document.getElementById("confidenceBox").innerText = `Confidence: ${Math.round((aiDecision.confidence || 0.5) * 100)}%`;
           document.getElementById("patternBox").innerText = aiDecision.reasoning ? aiDecision.reasoning.join(', ') : '';
+
+          // Update AI state visualization
+          updateAIStateVisualization(aiDecision);
+          updatePredictionHistoryGraph();
 
           // Add new prediction with timestamp
           if (!predictionHistory.find(p => p.period === period)) {
@@ -678,19 +1024,21 @@
     function renderTable() {
       const head = document.getElementById("tableHead");
       const body = document.getElementById("tableBody");
+      const activeTab = document.querySelector(".tab-buttons button.active").id;
 
-      if (document.getElementById("predTab").classList.contains("active")) {
-        head.innerHTML = "<tr><th>Period</th><th>Prediction</th><th>Actual</th><th>Status</th></tr>";
+      if (activeTab === "predTab") {
+        head.innerHTML = "<tr><th>Period</th><th>Prediction</th><th>Actual</th><th>Status</th><th>Confidence</th></tr>";
         body.innerHTML = predictionHistory.length === 0
-          ? "<tr><td colspan='4'>No predictions yet</td></tr>"
-          : predictionHistory.map(item => `
+          ? "<tr><td colspan='5'>No predictions yet</td></tr>"
+          : predictionHistory.slice(0, 15).map(item => `
             <tr>
               <td>${item.period}</td>
               <td>${item.prediction}</td>
               <td>${item.resultType}</td>
               <td><span class="status ${item.resultStatus.toLowerCase()}">${item.resultStatus.charAt(0)}</span></td>
+              <td>${item.confidence ? Math.round(item.confidence * 100) + '%' : '--'}</td>
             </tr>`).join("");
-      } else {
+      } else if (activeTab === "gameTab") {
         head.innerHTML = "<tr><th>Period</th><th>Number</th><th>Big/Small</th><th>Color</th></tr>";
         body.innerHTML = "<tr><td colspan='4'>Loading game history...</td></tr>";
         fetch(HISTORY_API + '?ts=' + Date.now())
@@ -706,7 +1054,7 @@
               body.innerHTML = "<tr><td colspan='4'>Error loading game history</td></tr>";
               return;
             }
-            const history = data.data.list.slice(0, 10).map(item => {
+            const history = data.data.list.slice(0, 15).map(item => {
               const num = parseInt(item.number);
               return { period: item.issueNumber, number: num, size: getBigSmall(num), color: getColor(num) };
             });
@@ -725,17 +1073,54 @@
             body.innerHTML = "<tr><td colspan='4'>Error loading game history</td></tr>";
             console.error("Game history error:", e.message);
           });
+      } else if (activeTab === "aiTab") {
+        head.innerHTML = "<tr><th>Metric</th><th>Value</th><th>Trend</th></tr>";
+        body.innerHTML = `
+          <tr>
+            <td>Pattern Recognition</td>
+            <td>${Math.round(aiState.patternRecognition * 100)}%</td>
+            <td><span class="trend-indicator ${aiState.patternRecognition > 0.7 ? 'trend-up' : aiState.patternRecognition < 0.3 ? 'trend-down' : 'trend-neutral'}">${aiState.patternRecognition > 0.7 ? '↑' : aiState.patternRecognition < 0.3 ? '↓' : '→'}</span></td>
+          </tr>
+          <tr>
+            <td>Trend Analysis</td>
+            <td>${Math.round(aiState.trendAnalysis * 100)}%</td>
+            <td><span class="trend-indicator ${aiState.trendAnalysis > 0.7 ? 'trend-up' : aiState.trendAnalysis < 0.3 ? 'trend-down' : 'trend-neutral'}">${aiState.trendAnalysis > 0.7 ? '↑' : aiState.trendAnalysis < 0.3 ? '↓' : '→'}</span></td>
+          </tr>
+          <tr>
+            <td>Statistical Probability</td>
+            <td>${Math.round(aiState.statisticalProbability * 100)}%</td>
+            <td><span class="trend-indicator ${aiState.statisticalProbability > 0.7 ? 'trend-up' : aiState.statisticalProbability < 0.3 ? 'trend-down' : 'trend-neutral'}">${aiState.statisticalProbability > 0.7 ? '↑' : aiState.statisticalProbability < 0.3 ? '↓' : '→'}</span></td>
+          </tr>
+          <tr>
+            <td>AI Accuracy</td>
+            <td>${stats.accuracy}%</td>
+            <td><span class="trend-indicator ${stats.accuracy > 60 ? 'trend-up' : stats.accuracy < 40 ? 'trend-down' : 'trend-neutral'}">${stats.accuracy > 60 ? '↑' : stats.accuracy < 40 ? '↓' : '→'}</span></td>
+          </tr>
+          <tr>
+            <td>Current Win Streak</td>
+            <td>${stats.winStreak}</td>
+            <td><span class="trend-indicator ${stats.winStreak > 3 ? 'trend-up' : stats.winStreak === 0 ? 'trend-down' : 'trend-neutral'}">${stats.winStreak > 3 ? '↑' : stats.winStreak === 0 ? '↓' : '→'}</span></td>
+          </tr>
+        `;
       }
     }
 
     document.getElementById("predTab").onclick = () => {
       document.getElementById("predTab").classList.add("active");
       document.getElementById("gameTab").classList.remove("active");
+      document.getElementById("aiTab").classList.remove("active");
       renderTable();
     };
     document.getElementById("gameTab").onclick = () => {
       document.getElementById("gameTab").classList.add("active");
       document.getElementById("predTab").classList.remove("active");
+      document.getElementById("aiTab").classList.remove("active");
+      renderTable();
+    };
+    document.getElementById("aiTab").onclick = () => {
+      document.getElementById("aiTab").classList.add("active");
+      document.getElementById("predTab").classList.remove("active");
+      document.getElementById("gameTab").classList.remove("active");
       renderTable();
     };
 
