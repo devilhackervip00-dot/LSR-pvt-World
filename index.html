@@ -21,6 +21,7 @@
       --model-1-color: #00ffea;
       --model-2-color: #ff00ff;
       --model-3-color: #00ff9d;
+      --future-color: #ff9900;
     }
     body {
       font-family: 'Outfit', sans-serif;
@@ -274,6 +275,129 @@
       font-size: 12px;
       color: var(--text-gray);
     }
+    
+    /* Enhanced AI Visualization Components */
+    .ai-advanced-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .pattern-matrix {
+      grid-column: 1 / -1;
+      background: var(--analysis-box-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 5px;
+    }
+    .pattern-matrix-header {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .pattern-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 2px;
+      margin-bottom: 8px;
+    }
+    .pattern-cell {
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      border-radius: 2px;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .pattern-cell.big {
+      background: rgba(0, 255, 234, 0.3);
+      border: 1px solid var(--model-1-color);
+    }
+    .pattern-cell.small {
+      background: rgba(255, 0, 255, 0.3);
+      border: 1px solid var(--model-2-color);
+    }
+    .pattern-cell.active {
+      transform: scale(1.1);
+      box-shadow: 0 0 5px currentColor;
+      z-index: 2;
+    }
+    .pattern-cell.trend-up {
+      box-shadow: inset 0 2px 0 rgba(0, 255, 138, 0.7);
+    }
+    .pattern-cell.trend-down {
+      box-shadow: inset 0 -2px 0 rgba(255, 0, 0, 0.7);
+    }
+    .pattern-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-gray);
+      margin-bottom: 8px;
+    }
+    .pattern-analysis-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .pattern-insights {
+      background: var(--analysis-box-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: left;
+    }
+    .pattern-trends {
+      background: var(--analysis-box-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: left;
+    }
+    .insights-header, .trends-header {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .insight-item, .trend-item {
+      margin-bottom: 5px;
+      font-size: 11px;
+      color: var(--text-gray);
+      display: flex;
+      align-items: center;
+    }
+    .insight-high, .trend-high {
+      color: var(--success-color);
+    }
+    .insight-medium, .trend-medium {
+      color: var(--warning-color);
+    }
+    .insight-low, .trend-low {
+      color: var(--danger-color);
+    }
+    .trend-indicator {
+      width: 12px;
+      height: 12px;
+      margin-right: 5px;
+      border-radius: 2px;
+    }
+    .trend-up-indicator {
+      background: var(--success-color);
+    }
+    .trend-down-indicator {
+      background: var(--danger-color);
+    }
+    .trend-neutral-indicator {
+      background: var(--warning-color);
+    }
 
     @keyframes pulse {
       0% { opacity: 0.6; }
@@ -282,6 +406,14 @@
     }
     .pulsing {
       animation: pulse 2s infinite;
+    }
+    @keyframes glow {
+      0% { box-shadow: 0 0 3px var(--primary-color); }
+      50% { box-shadow: 0 0 10px var(--primary-color); }
+      100% { box-shadow: 0 0 3px var(--primary-color); }
+    }
+    .glowing {
+      animation: glow 2s infinite;
     }
   </style>
 </head>
@@ -343,6 +475,36 @@
         <div class="pattern-analysis" id="patternAnalysis">Last cross-check: --:--:--</div>
       </div>
     </div>
+    
+    <!-- Advanced AI Visualization -->
+    <div class="ai-advanced-container">
+      <div class="pattern-matrix">
+        <div class="pattern-matrix-header">PATTERN MATRIX (Last 50 Periods)</div>
+        <div class="pattern-grid" id="patternMatrix"></div>
+        <div class="pattern-stats">
+          <span id="bigCount">BIG: 0</span>
+          <span id="smallCount">SMALL: 0</span>
+          <span id="streakCount">Current Streak: 0</span>
+          <span id="alternationRate">Alternation: 0%</span>
+        </div>
+        
+        <div class="pattern-analysis-container">
+          <div class="pattern-insights">
+            <div class="insights-header">PATTERN INSIGHTS</div>
+            <div id="patternInsights">
+              <div class="insight-item">Analyzing historical patterns...</div>
+            </div>
+          </div>
+          
+          <div class="pattern-trends">
+            <div class="trends-header">TREND ANALYSIS</div>
+            <div id="trendAnalysis">
+              <div class="trend-item">Evaluating market trends...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   
   <div class="analysis-dashboard">
@@ -370,14 +532,14 @@
 
   <script>
     // Configuration Constants
-    const API_RETRY_INTERVAL = 3000;
-    const API_MAX_RETRIES = 3;
+    const API_RETRY_INTERVAL = 7000;
+    const API_MAX_RETRIES = 7;
     const UPDATE_INTERVAL = 5000;
     const SMALL_NUMBERS = [0, 1, 2, 3, 4];
     const BIG_NUMBERS = [5, 6, 7, 8, 9];
     const MAX_HISTORY = 2880;
     const HISTORY_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-    const MAX_DAILY_PATTERNS = 7;
+    const MAX_DAILY_PATTERNS = 1440;
 
     const CURRENT_API = 'https://api.bdg88zf.com/api/webapi/GetGameIssue';
     const HISTORY_API = 'https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json';
@@ -424,6 +586,9 @@
         this.lastPrediction = null;
         this.accuracyStats = { correct: 0, total: 0 };
         this.patternHistory = [];
+        this.patternMatrix = [];
+        this.patternInsights = [];
+        this.trendAnalysis = [];
       }
 
       analyzePatterns(history) {
@@ -432,24 +597,60 @@
           sizeStreak: 0,
           sizeAlternation: 0,
           numberFrequency: {},
-          lastNumbers: history.slice(0, 5).map(item => item.number)
+          lastNumbers: history.slice(0, 5).map(item => item.number),
+          trends: [],
+          alternationRate: 0
         };
 
-        let currentStreak = 1, alternations = 0;
-        for (let i = 1; i < history.length; i++) {
-          const prevSize = history[i - 1].number <= 4 ? 'small' : 'big';
+        let currentStreakType = null;
+        let currentStreak = 0;
+        let alternations = 0;
+        let bigCount = 0;
+        let smallCount = 0;
+        
+        for (let i = 0; i < history.length; i++) {
           const currentSize = history[i].number <= 4 ? 'small' : 'big';
-          if (prevSize === currentSize) {
+          
+          // Count big/small
+          if (currentSize === 'big') bigCount++;
+          else smallCount++;
+          
+          // Calculate streaks
+          if (currentStreakType === currentSize) {
             currentStreak++;
           } else {
-            analysis.sizeStreak = Math.max(analysis.sizeStreak, currentStreak);
+            if (currentStreak > analysis.sizeStreak) {
+              analysis.sizeStreak = currentStreak;
+            }
+            currentStreakType = currentSize;
             currentStreak = 1;
-            alternations++;
+            if (i > 0) alternations++;
           }
+          
+          // Track trends
+          if (i > 0) {
+            const prevNum = history[i-1].number;
+            const currNum = history[i].number;
+            if (currNum > prevNum) analysis.trends.push('up');
+            else if (currNum < prevNum) analysis.trends.push('down');
+            else analysis.trends.push('neutral');
+          }
+          
           analysis.numberFrequency[history[i].number] = (analysis.numberFrequency[history[i].number] || 0) + 1;
         }
+        
+        // Final streak check
+        if (currentStreak > analysis.sizeStreak) {
+          analysis.sizeStreak = currentStreak;
+        }
+        
         analysis.sizeAlternation = alternations / (history.length - 1);
-        analysis.sizeStreak = currentStreak;
+        analysis.alternationRate = Math.round(analysis.sizeAlternation * 100);
+        analysis.bigCount = bigCount;
+        analysis.smallCount = smallCount;
+        analysis.currentStreakType = currentStreakType;
+        analysis.currentStreak = currentStreak;
+        
         return analysis;
       }
 
@@ -458,10 +659,10 @@
         const prediction = { number: null, size: null, confidence: 0.5, reasoning: [] };
 
         // Streak-based prediction
-        if (analysis.sizeStreak >= 3) {
-          prediction.size = analysis.lastNumbers[0] <= 4 ? 'big' : 'small';
+        if (analysis.currentStreak >= 3) {
+          prediction.size = analysis.currentStreakType === 'big' ? 'small' : 'big';
           prediction.confidence += 0.2;
-          prediction.reasoning.push(`Breaking ${analysis.sizeStreak}-${prediction.size} streak`);
+          prediction.reasoning.push(`Breaking ${analysis.currentStreak}-${analysis.currentStreakType} streak`);
         }
 
         // Alternation-based prediction
@@ -540,6 +741,145 @@
       getAccuracy() {
         return this.accuracyStats.total === 0 ? 0 : (this.accuracyStats.correct / this.accuracyStats.total) * 100;
       }
+      
+      // Advanced pattern analysis for visualization
+      analyzePatternMatrix(history) {
+        // Limit to last 50 periods for visualization
+        const recentHistory = history.slice(0, 50);
+        this.patternMatrix = recentHistory.map((item, index) => {
+          let trend = 'neutral';
+          if (index > 0) {
+            const prevNum = recentHistory[index-1].number;
+            if (item.number > prevNum) trend = 'up';
+            else if (item.number < prevNum) trend = 'down';
+          }
+          
+          return {
+            period: item.period,
+            number: item.number,
+            type: item.number <= 4 ? 'small' : 'big',
+            color: this.getColor(item.number),
+            trend: trend
+          };
+        });
+        
+        return this.patternMatrix;
+      }
+      
+      getColor(num) {
+        if ([1, 3, 7, 9].includes(num)) return "Green";
+        if ([2, 4, 6, 8].includes(num)) return "Red";
+        return "Violet";
+      }
+      
+      // Generate pattern insights
+      generatePatternInsights(history) {
+        this.patternInsights = [];
+        const analysis = this.analyzePatterns(history);
+        
+        if (analysis.currentStreak >= 3) {
+          this.patternInsights.push({
+            text: `Strong ${analysis.currentStreakType} streak ongoing (${analysis.currentStreak} periods)`,
+            importance: 'high'
+          });
+        }
+        
+        if (analysis.sizeAlternation > 0.7) {
+          this.patternInsights.push({
+            text: `High alternation rate detected (${Math.round(analysis.sizeAlternation * 100)}%)`,
+            importance: 'medium'
+          });
+        }
+        
+        const bigPercentage = Math.round((analysis.bigCount / (analysis.bigCount + analysis.smallCount)) * 100);
+        if (bigPercentage > 60 || bigPercentage < 40) {
+          this.patternInsights.push({
+            text: `Imbalance detected: ${bigPercentage}% BIG vs ${100 - bigPercentage}% SMALL`,
+            importance: 'medium'
+          });
+        }
+        
+        // Find least frequent number
+        const sortedNumbers = Object.entries(analysis.numberFrequency).sort((a, b) => a[1] - b[1]);
+        if (sortedNumbers.length > 0) {
+          this.patternInsights.push({
+            text: `Least frequent number: ${sortedNumbers[0][0]} (${sortedNumbers[0][1]} occurrences)`,
+            importance: 'low'
+          });
+        }
+        
+        // If no insights, add a default one
+        if (this.patternInsights.length === 0) {
+          this.patternInsights.push({
+            text: 'No strong patterns detected in recent data',
+            importance: 'low'
+          });
+        }
+        
+        return this.patternInsights;
+      }
+      
+      // Generate trend analysis
+      generateTrendAnalysis(history) {
+        this.trendAnalysis = [];
+        const analysis = this.analyzePatterns(history);
+        
+        // Count trend directions
+        const trendCounts = {
+          up: analysis.trends.filter(t => t === 'up').length,
+          down: analysis.trends.filter(t => t === 'down').length,
+          neutral: analysis.trends.filter(t => t === 'neutral').length
+        };
+        
+        const totalTrends = analysis.trends.length;
+        
+        if (trendCounts.up / totalTrends > 0.6) {
+          this.trendAnalysis.push({
+            text: `Strong upward trend (${Math.round(trendCounts.up / totalTrends * 100)}% of recent moves)`,
+            direction: 'up',
+            strength: 'high'
+          });
+        } else if (trendCounts.down / totalTrends > 0.6) {
+          this.trendAnalysis.push({
+            text: `Strong downward trend (${Math.round(trendCounts.down / totalTrends * 100)}% of recent moves)`,
+            direction: 'down',
+            strength: 'high'
+          });
+        }
+        
+        if (trendCounts.up > trendCounts.down) {
+          this.trendAnalysis.push({
+            text: `Moderate upward bias (${trendCounts.up} up vs ${trendCounts.down} down)`,
+            direction: 'up',
+            strength: 'medium'
+          });
+        } else if (trendCounts.down > trendCounts.up) {
+          this.trendAnalysis.push({
+            text: `Moderate downward bias (${trendCounts.down} down vs ${trendCounts.up} up)`,
+            direction: 'down',
+            strength: 'medium'
+          });
+        }
+        
+        if (trendCounts.neutral / totalTrends > 0.3) {
+          this.trendAnalysis.push({
+            text: `Significant neutral movement (${Math.round(trendCounts.neutral / totalTrends * 100)}%)`,
+            direction: 'neutral',
+            strength: 'medium'
+          });
+        }
+        
+        // If no trends, add a default one
+        if (this.trendAnalysis.length === 0) {
+          this.trendAnalysis.push({
+            text: 'No clear trend direction detected',
+            direction: 'neutral',
+            strength: 'low'
+          });
+        }
+        
+        return this.trendAnalysis;
+      }
     }
 
     // Initialize predictor
@@ -616,7 +956,7 @@
       
       let confidence = Math.min(90, Math.abs(bigPercent - 50) + 40);
       return {
-        prediction: bigPercent > 50 ? "SMALL" : "BIG",
+        prediction: bigPercent > 5.0 ? "BIG" : "SMALL",
         confidence: confidence,
         logic: 8,
         reasoning: `Stats: ${bigPercent.toFixed(1)}% BIG in last ${lookback} rounds`
@@ -741,6 +1081,58 @@
       if (aiState.lastPatterns.length > 20) {
         aiState.lastPatterns.shift();
       }
+    }
+
+    // Update advanced AI visualization
+    function updateAdvancedAIVisualization(history) {
+      // Update pattern matrix
+      const patternMatrix = aiPredictor.analyzePatternMatrix(history);
+      const matrixElement = document.getElementById("patternMatrix");
+      matrixElement.innerHTML = '';
+      
+      patternMatrix.forEach((item, index) => {
+        const cell = document.createElement("div");
+        cell.className = `pattern-cell ${item.type} ${index === 0 ? 'active' : ''} ${item.trend !== 'neutral' ? 'trend-' + item.trend : ''}`;
+        cell.textContent = item.number;
+        cell.title = `Period: ${item.period}, Number: ${item.number}, Type: ${item.type.toUpperCase()}, Trend: ${item.trend}`;
+        matrixElement.appendChild(cell);
+      });
+      
+      // Update pattern stats
+      const analysis = aiPredictor.analyzePatterns(history);
+      document.getElementById("bigCount").textContent = `BIG: ${analysis.bigCount}`;
+      document.getElementById("smallCount").textContent = `SMALL: ${analysis.smallCount}`;
+      document.getElementById("streakCount").textContent = `Current Streak: ${analysis.currentStreak} ${analysis.currentStreakType}`;
+      document.getElementById("alternationRate").textContent = `Alternation: ${analysis.alternationRate}%`;
+      
+      // Update pattern insights
+      const insights = aiPredictor.generatePatternInsights(history);
+      const insightsElement = document.getElementById("patternInsights");
+      insightsElement.innerHTML = '';
+      
+      insights.forEach(insight => {
+        const insightItem = document.createElement("div");
+        insightItem.className = `insight-item insight-${insight.importance}`;
+        insightItem.textContent = insight.text;
+        insightsElement.appendChild(insightItem);
+      });
+      
+      // Update trend analysis
+      const trends = aiPredictor.generateTrendAnalysis(history);
+      const trendsElement = document.getElementById("trendAnalysis");
+      trendsElement.innerHTML = '';
+      
+      trends.forEach(trend => {
+        const trendItem = document.createElement("div");
+        trendItem.className = `trend-item trend-${trend.strength}`;
+        
+        const indicator = document.createElement("div");
+        indicator.className = `trend-indicator trend-${trend.direction}-indicator`;
+        
+        trendItem.appendChild(indicator);
+        trendItem.appendChild(document.createTextNode(trend.text));
+        trendsElement.appendChild(trendItem);
+      });
     }
 
     // Update status without opposite number
@@ -975,6 +1367,9 @@
           lastFetchedPeriod = period;
         }
 
+        // Update advanced AI visualization
+        updateAdvancedAIVisualization(predictionHistory.filter(p => p.resultType !== "-" && p.resultType !== "Pending"));
+        
         updateStats();
         renderTable();
       } catch (e) {
